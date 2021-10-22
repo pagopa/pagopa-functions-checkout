@@ -1,6 +1,6 @@
 # pagoPA checkout Function App
 
-- [IO Functions Pay Portal](#io-functions-pay-portal)
+- [IO Functions Pay Portal](#pagopa-functions-checkout)
   - [Local development](#local-development)
     - [Prerequisites](#prerequisites)
     - [Backend side](#backend-side)
@@ -17,7 +17,7 @@
 
 Go to backend project directory
 ```
-cd io-functions-pay-portal
+cd pagopa-functions-checkout
 ```
 
 set local environment variables typing :

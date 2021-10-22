@@ -67,7 +67,7 @@ then
     # echo -e "\t Generate and runs all docker IO images (pagopa-proxy, nodoSPC and other stuffs )..."
     yarn install && yarn start -d
 
-    echo -e "\t Start io-functions-pay-portal"
+    echo -e "\t Start pagopa-functions-checkout"
     yarn install && yarn docker
 
     echo "Tests :"

@@ -75,15 +75,13 @@ stages:
         - template: azure-templates/setup-project.yml
         
         - script: yarn generate
-          workingDirectory: io-functions-pay-portal
           displayName: 'Generate definitions'
 
         - script: yarn test:coverage
-          workingDirectory: io-functions-pay-portal
           displayName: 'Unit tests exec'
 
         - task: PublishCodeCoverageResults@1
           inputs:
             codeCoverageTool: 'Cobertura'
-            summaryFileLocation: 'io-functions-pay-portal/coverage/cobertura-coverage.xml'
+            summaryFileLocation: 'coverage/cobertura-coverage.xml'
           displayName: 'Publish Code Coverage'

@@ -145,7 +145,7 @@ stages:
 
   - stage: UAT_to_PROD_promotion
     dependsOn:
-      - Deploy_UAT
+      - Deploy_to_UAT
     jobs:
       - job: Deploy_PROD_WaitForApproval
         displayName: Wait for PROD approval

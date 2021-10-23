@@ -18,7 +18,7 @@ export const IConfig = t.interface({
   IO_PAY_ORIGIN: NonEmptyString,
   IO_PAY_XPAY_REDIRECT: NonEmptyString,
   PAGOPA_BASE_PATH: NonEmptyString,
-  PAY_PORTAL_RECAPTCHA_SECRET: NonEmptyString,
+  PAY_PORTAL_RECAPTCHA_SECRET: NonEmptyString
 });
 
 // No need to re-evaluate this object for each call

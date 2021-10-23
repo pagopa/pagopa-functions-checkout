@@ -72,7 +72,7 @@ stages:
     jobs:
       - job: unit_tests
         steps:
-        - template: azure-templates/setup-project.yml
+        - template: templates/node-job-setup/template.yaml@pagopaCommons
         
         - script: yarn generate
           displayName: 'Generate definitions'

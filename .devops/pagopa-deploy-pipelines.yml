@@ -57,7 +57,7 @@ stages:
           - template: templates/node-job-setup/template.yaml@pagopaCommons
             parameters:
               persistCredentials: true
-              release_branch: 'main'
+              gitReference: 'main'
           - template: templates/node-github-release/template.yaml@pagopaCommons
             parameters:
               release_branch: 'main'

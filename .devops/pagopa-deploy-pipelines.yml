@@ -127,27 +127,43 @@ stages:
     dependsOn:
       - Prepare_artifact
     jobs:
-      - deployment: do_deploy
-        continueOnError: false
-        environment: 'checkout-UAT'
-        strategy:
-          runOnce:
-            deploy:
-              steps:
-              - checkout: none
-              - download: current
-                artifact: Bundle
-              - task: AzureFunctionApp@1  
-                inputs:
-                  azureSubscription: '$(UAT_AZURE_SUBSCRIPTION)'
-                  resourceGroupName: 'pagopa-u-checkout-be-rg'
-                  appType: 'functionApp'
-                  appName: 'pagopa-u-fn-checkout'
-                  package: '$(Pipeline.Workspace)/Bundle'
-                  deploymentMethod: 'auto'
-                  deployToSlotOrASE: true
-                  slotName: 'production'
-                displayName: Deploy to UAT
+      - job: 'do_deploy'
+        steps:
+          - checkout: none
+          - download: current
+            artifact: Bundle
+          - task: AzureFunctionApp@1  
+            inputs:
+              azureSubscription: '$(UAT_AZURE_SUBSCRIPTION)'
+              resourceGroupName: 'pagopa-u-checkout-be-rg'
+              appType: 'functionApp'
+              appName: 'pagopa-u-fn-checkout'
+              package: '$(Pipeline.Workspace)/Bundle'
+              deploymentMethod: 'auto'
+              deployToSlotOrASE: true
+              slotName: 'production'
+              displayName: Deploy to UAT
+
+  - stage: API_Tests
+    dependsOn:
+      - Deploy_to_UAT
+    pool:
+      vmImage: 'ubuntu-latest'
+    jobs:
+      - job: api_tests
+        steps:
+          - script: |
+              yarn global add newman
+            displayName: 'newman installation'
+          - script: |
+              newman run https://raw.githubusercontent.com/pagopa/pagopa-checkout-tests/main/api-tests/checkout-api.tests.json?token=AMO3XDK7YYGGTLTXDZTCITDBQFOSK --environment=https://raw.githubusercontent.com/pagopa/pagopa-checkout-tests/main/api-tests/uat.envs.json?token=AMO3XDN7MBQ3R673VQKVD5LBQFOVY --reporters cli,junit --reporter-junit-export Results/checkout-api-TEST.xml
+            displayName: 'Run api test'
+            continueOnError: true 
+          - task: PublishTestResults@2
+            inputs:
+              testResultsFormat: 'JUnit'
+              testResultsFiles: '**/*-TEST.xml' 
+              searchFolder: '$(System.DefaultWorkingDirectory)'
 
   - stage: UAT_to_PROD_promotion
     dependsOn:

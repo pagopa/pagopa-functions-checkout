@@ -1,6 +1,6 @@
 # pagoPA checkout Function App
 
-- [IO Functions Pay Portal](#pagopa-functions-checkout)
+- [Checkout Function App](#pagopa-functions-checkout)
   - [Local development](#local-development)
     - [Prerequisites](#prerequisites)
     - [Backend side](#backend-side)
@@ -50,7 +50,3 @@ functions_1  |  GetPaymentInfo: [GET] http://localhost:7071/api/v1/payment-reque
 functions_1  | 
 functions_1  |  Info: [GET] http://localhost:7071/info
 ```
-
-
-
-### Frontend side

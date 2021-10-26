@@ -127,23 +127,27 @@ stages:
     dependsOn:
       - Prepare_artifact
     jobs:
-      - job: 'do_deploy'
-        steps:
-          - checkout: none
-          - download: current
-            artifact: Bundle
-            
-          - task: AzureFunctionApp@1  
-            inputs:
-              azureSubscription: '$(UAT_AZURE_SUBSCRIPTION)'
-              resourceGroupName: 'pagopa-u-checkout-be-rg'
-              appType: 'functionApp'
-              appName: 'pagopa-u-fn-checkout'
-              package: '$(Pipeline.Workspace)/Bundle'
-              deploymentMethod: 'auto'
-              deployToSlotOrASE: true
-              slotName: 'production'
-            displayName: Deploy to UAT
+      - deployment: do_deploy
+        continueOnError: false
+        environment: 'UAT'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+              - checkout: none
+              - download: current
+                artifact: Bundle
+              - task: AzureFunctionApp@1  
+                inputs:
+                  azureSubscription: '$(UAT_AZURE_SUBSCRIPTION)'
+                  resourceGroupName: 'pagopa-u-checkout-be-rg'
+                  appType: 'functionApp'
+                  appName: 'pagopa-u-fn-checkout'
+                  package: '$(Pipeline.Workspace)/Bundle'
+                  deploymentMethod: 'auto'
+                  deployToSlotOrASE: true
+                  slotName: 'production'
+                displayName: Deploy to UAT
 
   - stage: UAT_to_PROD_promotion
     dependsOn:

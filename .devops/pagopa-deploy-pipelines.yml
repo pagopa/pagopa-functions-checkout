@@ -129,7 +129,7 @@ stages:
     jobs:
       - deployment: do_deploy
         continueOnError: false
-        environment: 'UAT'
+        environment: 'checkout-UAT'
         strategy:
           runOnce:
             deploy:

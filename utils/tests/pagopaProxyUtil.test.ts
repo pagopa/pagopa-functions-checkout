@@ -16,6 +16,7 @@ const context = ({
     // tslint:disable-next-line: no-console
     warn: jest.fn().mockImplementation(console.log)
   }
+  // tslint:disable-next-line:no-any
 } as any) as Context;
 
 afterEach(() => {

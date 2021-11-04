@@ -13,8 +13,14 @@ export const getLogger = (
         `${logPrefix}|${name}|ERROR=${errorsToReadableMessages(errs)}`
       );
     },
+    logInfo: (errs: string) =>
+      context.log.info(`${logPrefix}|${name}|INFO=${errs}`),
     logUnknown: (errs: unknown) =>
       context.log.error(
+        `${logPrefix}|${name}|UNKNOWN_ERROR=${JSON.stringify(errs)}`
+      ),
+    logWarning: (errs: unknown) =>
+      context.log.warn(
         `${logPrefix}|${name}|UNKNOWN_ERROR=${JSON.stringify(errs)}`
       )
   };

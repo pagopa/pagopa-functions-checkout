@@ -80,7 +80,12 @@ const getPaymentInfoTask = (
         rpt_id_from_string: RptIdFromString.encode(rptId)
       }),
     200,
-    toErrorPagopaProxyResponse
+    errorResponse =>
+      toErrorPagopaProxyResponse(
+        errorResponse,
+        logger,
+        RptIdFromString.encode(rptId)
+      )
   );
 
 export const recaptchaCheckTask = (

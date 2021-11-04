@@ -7,6 +7,7 @@ import {
   ResponseErrorValidation
 } from "italia-ts-commons/lib/responses";
 import { PaymentProblemJson } from "../generated/pagopa-proxy/PaymentProblemJson";
+import { ILogger } from "./logging";
 import {
   ErrorResponses,
   ResponseErrorUnauthorized,
@@ -14,7 +15,9 @@ import {
 } from "./responses";
 
 export const toErrorPagopaProxyResponse = <S extends number, T>(
-  response: IResponseType<S, T>
+  response: IResponseType<S, T>,
+  logger: ILogger,
+  rptId?: string
 ) => {
   switch (response.status) {
     case 401:
@@ -27,12 +30,15 @@ export const toErrorPagopaProxyResponse = <S extends number, T>(
       return ResponseErrorTooManyRequests("Too many requests");
     case 500:
       return PaymentProblemJson.decode(response.value).fold<ErrorResponses>(
-        _ => ResponseErrorInternal("Generic Error"),
-        result =>
-          ResponseErrorValidation(
-            "Validation Error",
-            result.detail_v2 ? result.detail_v2 : result.detail
-          )
+        error => {
+          logger.logWarning(error);
+          return ResponseErrorInternal("Generic Error");
+        },
+        result => {
+          const detail = result.detail_v2 ? result.detail_v2 : result.detail;
+          logger.logInfo(`pagoPA proxy [rptId: ${rptId}, detail: ${detail}]`);
+          return ResponseErrorValidation("Validation Error", detail);
+        }
       );
     default:
       return unhandledResponseStatus(response.status);

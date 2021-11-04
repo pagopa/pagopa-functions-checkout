@@ -49,7 +49,8 @@ const activatePaymentTask = (
     logger,
     () => apiClient.activatePayment({ body: paymentRequest }),
     200,
-    toErrorPagopaProxyResponse
+    errorResponse =>
+      toErrorPagopaProxyResponse(errorResponse, logger, paymentRequest.rptId)
   );
 
 export function ActivatePaymentHandler(

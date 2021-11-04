@@ -51,7 +51,7 @@ const GetActivationStatusTask = (
         codice_contesto_pagamento: codiceContestoPagamento
       }),
     200,
-    toErrorPagopaProxyResponse
+    errorResponse => toErrorPagopaProxyResponse(errorResponse, logger)
   );
 
 export function GetActivationStatusHandler(

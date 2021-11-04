@@ -172,7 +172,6 @@ stages:
       - job: Deploy_PROD_WaitForApproval
         displayName: Wait for PROD approval
         pool: server
-        timeoutInMinutes: 4320 # 3 days
         steps:
         - task: ManualValidation@0
           timeoutInMinutes: 4320 # 3 days

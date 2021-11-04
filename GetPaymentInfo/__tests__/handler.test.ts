@@ -43,7 +43,9 @@ const context = ({
 // use to mock getLogger
 jest.spyOn(logger, "getLogger").mockReturnValueOnce({
   logErrors: jest.fn(),
-  logUnknown: jest.fn()
+  logInfo: jest.fn(),
+  logUnknown: jest.fn(),
+  logWarning: jest.fn()
 });
 
 afterEach(() => {

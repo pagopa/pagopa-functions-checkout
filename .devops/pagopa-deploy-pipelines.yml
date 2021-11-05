@@ -156,7 +156,7 @@ stages:
               yarn global add newman
             displayName: 'newman installation'
           - script: |
-              newman run https://raw.githubusercontent.com/pagopa/pagopa-checkout-tests/main/api-tests/checkout-api.tests.json?token=AMO3XDK7YYGGTLTXDZTCITDBQFOSK --environment=https://raw.githubusercontent.com/pagopa/pagopa-checkout-tests/main/api-tests/uat.envs.json?token=AMO3XDN7MBQ3R673VQKVD5LBQFOVY --reporters cli,junit --reporter-junit-export Results/checkout-api-TEST.xml
+              newman run https://raw.githubusercontent.com/pagopa/pagopa-checkout-tests/main/api-tests/checkout-api.tests.json?token=AMO3XDLSCSMYAOKDSZOJSKDBRZI7G --environment=https://raw.githubusercontent.com/pagopa/pagopa-checkout-tests/main/api-tests/uat.envs.json?token=AMO3XDMM22R7X3L2WR3PEU3BRZKGI --reporters cli,junit --reporter-junit-export Results/checkout-api-TEST.xml
             displayName: 'Run api test'
             continueOnError: true 
           - task: PublishTestResults@2
@@ -172,6 +172,7 @@ stages:
       - job: Deploy_PROD_WaitForApproval
         displayName: Wait for PROD approval
         pool: server
+        timeoutInMinutes: 4320 # 3 days
         steps:
         - task: ManualValidation@0
           timeoutInMinutes: 4320 # 3 days

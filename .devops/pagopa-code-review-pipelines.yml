@@ -67,7 +67,7 @@ stages:
               DANGER_GITHUB_API_TOKEN: '$(DANGER_GITHUB_API_TOKEN)'
             displayName: 'Danger CI'
             
-  - stage: Test
+  - stage: Unit_Test
     dependsOn: []
     jobs:
       - job: unit_tests
@@ -85,3 +85,19 @@ stages:
             codeCoverageTool: 'Cobertura'
             summaryFileLocation: 'coverage/cobertura-coverage.xml'
           displayName: 'Publish Code Coverage'
+
+  - stage: Integrations_Test
+    dependsOn: []
+    jobs:
+      - job: integration_tests
+        steps:
+        - template: templates/node-job-setup/template.yaml@pagopaCommons
+        
+        - script: yarn generate
+          displayName: 'Generate definitions'
+
+        - script: yarn pagopaproxy-mock:server &
+          displayName: 'Start pagopaproxy mock'  
+
+        - script: test:integration
+          displayName: 'Integration tests exec'     

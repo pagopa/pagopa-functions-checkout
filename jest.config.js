@@ -9,5 +9,8 @@ module.exports = {
       outputName: 'pagopa-functions-checkout-TEST.xml',
     } ]
   ],
-  coverageReporters: ["cobertura"]
+  coverageReporters: ["cobertura"],
+  testMatch: [
+    "**/__tests__/*.ts"
+  ]
 };

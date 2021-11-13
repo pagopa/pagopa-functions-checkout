@@ -1,3 +1,4 @@
+/* tslint:disable */
 import { PaymentActivationsPostRequest } from "../generated/pagopa-proxy/PaymentActivationsPostRequest";
 
 export const paymentInfo = {

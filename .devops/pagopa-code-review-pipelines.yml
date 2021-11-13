@@ -99,5 +99,5 @@ stages:
         - script: yarn pagopaproxy-mock:server &
           displayName: 'Start pagopaproxy mock'  
 
-        - script: test:integration
+        - script: yarn test:integration
           displayName: 'Integration tests exec'     

@@ -1,8 +1,6 @@
-/* tslint:disable: no-any */
-
+/* tslint:disable */
 import { Context } from "@azure/functions";
 import { right } from "fp-ts/lib/Either";
-import { PaymentActivationsPostRequest } from "../../generated/pagopa-proxy/PaymentActivationsPostRequest";
 import { ActivatePaymentHandler } from "../handler";
 
 import {

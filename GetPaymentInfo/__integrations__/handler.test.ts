@@ -1,4 +1,4 @@
-/* tslint:disable: no-any */
+/* tslint:disable */
 import { Context } from "@azure/functions";
 
 import { paymentInfo } from "../../__mocks__/mock";

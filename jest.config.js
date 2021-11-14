@@ -5,7 +5,7 @@ module.exports = {
   reporters: [
     'default',
     [ 'jest-junit', {
-      outputDirectory: './test_reports',
+      outputDirectory: 'test_reports',
       outputName: 'pagopa-functions-checkout-TEST.xml',
     } ]
   ],

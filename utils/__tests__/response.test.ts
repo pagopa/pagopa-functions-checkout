@@ -1,4 +1,8 @@
-import { ErrorResponses, toErrorServerResponse } from "../responses";
+import {
+  ErrorResponses,
+  ResponseErrorUnauthorized,
+  toErrorServerResponse
+} from "../responses";
 
 afterEach(() => {
   jest.resetAllMocks();
@@ -54,5 +58,21 @@ describe("response", () => {
     });
 
     expect(error429.kind).toBe("IResponseErrorTooManyRequests");
+  });
+
+  it("should return IResponseErrorInternal with 502 status code", () => {
+    const error502: ErrorResponses = toErrorServerResponse({
+      headers: {},
+      status: 502,
+      value: {}
+    });
+
+    expect(error502.kind).toBe("IResponseErrorInternal");
+  });
+
+  it("should return IResponseErrorUnauthorized if response status is 401 ", () => {
+    const errorUnauthorized = ResponseErrorUnauthorized("title", "detail");
+
+    expect(errorUnauthorized.kind).toBe("IResponseErrorUnauthorized");
   });
 });

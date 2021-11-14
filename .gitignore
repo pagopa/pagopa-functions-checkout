@@ -51,8 +51,10 @@ generated
 
 *.js
 !jest.config.js
+!jest.integration.js
 !.release-it.js
 
 
 azure-functions-core-tools
-test_reports/pagopa-functions-checkout-TEST.xml
+test_reports
+

@@ -10,6 +10,7 @@ tslint.json
 README.md
 yarn.lock
 jest.config.js
+jest.integration.js
 __*
 Dangerfile.js
 CODEOWNERS

@@ -32,8 +32,6 @@ app.get("/api/v1/browsers/current/info", (req, res) => {
     ip: req.ip,
     useragent: req.get("User-Agent")
   };
-  logger?.info(`X-Forwarded-Host: ${req.get("X-Forwarded-Host")}`);
-  logger?.info(`clientIp (req.ip) : ${req.ip}`);
   return BrowserInfoResponse.decode(browserInfo).fold(
     _ => res.sendStatus(400),
     browserInfoResult => res.send(browserInfoResult)

@@ -37,17 +37,17 @@ stages:
   # - is on branch main 
   # - is a tag in the form v{version}-RELEASE
   - stage: Release
-    condition:
-      and(
-        succeeded(),
-        or(
-          eq(variables['Build.SourceBranch'], 'refs/heads/main'),
-          and(
-            startsWith(variables['Build.SourceBranch'], 'refs/tags'),
-            endsWith(variables['Build.SourceBranch'], '-RELEASE')
-          )
-        )
-      )
+    # condition:
+    #   and(
+    #     succeeded(),
+    #     or(
+    #       eq(variables['Build.SourceBranch'], 'refs/heads/main'),
+    #       and(
+    #         startsWith(variables['Build.SourceBranch'], 'refs/tags'),
+    #         endsWith(variables['Build.SourceBranch'], '-RELEASE')
+    #       )
+    #     )
+    #   )
     pool:
       vmImage: 'ubuntu-latest'
     jobs:
@@ -123,65 +123,65 @@ stages:
           - publish: $(System.DefaultWorkingDirectory)/bundle
             artifact: Bundle
 
-  - stage: Deploy_to_UAT
-    dependsOn:
-      - Prepare_artifact
-    jobs:
-      - job: 'do_deploy'
-        steps:
-          - checkout: none
-          - download: current
-            artifact: Bundle
-          - task: AzureFunctionApp@1  
-            inputs:
-              azureSubscription: '$(UAT_AZURE_SUBSCRIPTION)'
-              resourceGroupName: 'pagopa-u-checkout-be-rg'
-              appType: 'functionApp'
-              appName: 'pagopa-u-fn-checkout'
-              package: '$(Pipeline.Workspace)/Bundle'
-              deploymentMethod: 'auto'
-              deployToSlotOrASE: true
-              slotName: 'production'
-              displayName: Deploy to UAT
+  # - stage: Deploy_to_UAT
+  #   dependsOn:
+  #     - Prepare_artifact
+  #   jobs:
+  #     - job: 'do_deploy'
+  #       steps:
+  #         - checkout: none
+  #         - download: current
+  #           artifact: Bundle
+  #         - task: AzureFunctionApp@1  
+  #           inputs:
+  #             azureSubscription: '$(UAT_AZURE_SUBSCRIPTION)'
+  #             resourceGroupName: 'pagopa-u-checkout-be-rg'
+  #             appType: 'functionApp'
+  #             appName: 'pagopa-u-fn-checkout'
+  #             package: '$(Pipeline.Workspace)/Bundle'
+  #             deploymentMethod: 'auto'
+  #             deployToSlotOrASE: true
+  #             slotName: 'production'
+  #             displayName: Deploy to UAT
 
-  - stage: API_Tests
-    dependsOn:
-      - Deploy_to_UAT
-    pool:
-      vmImage: 'ubuntu-latest'
-    jobs:
-      - job: api_tests
-        steps:
-          - script: |
-              yarn global add newman
-            displayName: 'newman installation'
-          - script: |
-              newman run https://raw.githubusercontent.com/pagopa/pagopa-checkout-tests/main/api-tests/checkout-api.tests.json?token=AMO3XDLSCSMYAOKDSZOJSKDBRZI7G --environment=https://raw.githubusercontent.com/pagopa/pagopa-checkout-tests/main/api-tests/uat.envs.json?token=AMO3XDMM22R7X3L2WR3PEU3BRZKGI --reporters cli,junit --reporter-junit-export Results/checkout-api-TEST.xml
-            displayName: 'Run api test'
-            continueOnError: true 
-          - task: PublishTestResults@2
-            inputs:
-              testResultsFormat: 'JUnit'
-              testResultsFiles: '**/*-TEST.xml' 
-              searchFolder: '$(System.DefaultWorkingDirectory)'
+  # - stage: API_Tests
+  #   dependsOn:
+  #     - Deploy_to_UAT
+  #   pool:
+  #     vmImage: 'ubuntu-latest'
+  #   jobs:
+  #     - job: api_tests
+  #       steps:
+  #         - script: |
+  #             yarn global add newman
+  #           displayName: 'newman installation'
+  #         - script: |
+  #             newman run https://raw.githubusercontent.com/pagopa/pagopa-checkout-tests/main/api-tests/checkout-api.tests.json?token=AMO3XDLSCSMYAOKDSZOJSKDBRZI7G --environment=https://raw.githubusercontent.com/pagopa/pagopa-checkout-tests/main/api-tests/uat.envs.json?token=AMO3XDMM22R7X3L2WR3PEU3BRZKGI --reporters cli,junit --reporter-junit-export Results/checkout-api-TEST.xml
+  #           displayName: 'Run api test'
+  #           continueOnError: true 
+  #         - task: PublishTestResults@2
+  #           inputs:
+  #             testResultsFormat: 'JUnit'
+  #             testResultsFiles: '**/*-TEST.xml' 
+  #             searchFolder: '$(System.DefaultWorkingDirectory)'
 
-  - stage: UAT_to_PROD_promotion
-    dependsOn:
-      - Deploy_to_UAT
-    jobs:
-      - job: Deploy_PROD_WaitForApproval
-        displayName: Wait for PROD approval
-        pool: server
-        timeoutInMinutes: 4320 # 3 days
-        steps:
-        - task: ManualValidation@0
-          timeoutInMinutes: 4320 # 3 days
-          inputs:
-            onTimeout: 'skip'
+  # - stage: UAT_to_PROD_promotion
+  #   dependsOn:
+  #     - Deploy_to_UAT
+  #   jobs:
+  #     - job: Deploy_PROD_WaitForApproval
+  #       displayName: Wait for PROD approval
+  #       pool: server
+  #       timeoutInMinutes: 4320 # 3 days
+  #       steps:
+  #       - task: ManualValidation@0
+  #         timeoutInMinutes: 4320 # 3 days
+  #         inputs:
+  #           onTimeout: 'skip'
 
   - stage: Deploy_to_PROD
-    dependsOn:
-      - UAT_to_PROD_promotion
+    # dependsOn:
+      # - UAT_to_PROD_promotion
     jobs:
       - job: 'do_deploy'
         steps:

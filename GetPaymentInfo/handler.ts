@@ -30,12 +30,19 @@ import {
   TaskEither,
   tryCatch
 } from "fp-ts/lib/TaskEither";
+import {
+  fromPredicate as eitherFromPredicate
+} from "fp-ts/lib/Either";
 import { RptIdFromString } from "italia-pagopa-commons/lib/pagopa";
 import { readableReport } from "italia-ts-commons/lib/reporters";
 import { fetchApi } from "../clients/fetchApi";
 import { PaymentProblemJson } from "../generated/pagopa-proxy/PaymentProblemJson";
 import { ProblemJson } from "../generated/pagopa-proxy/ProblemJson";
 import { toErrorPagopaProxyResponse } from "../utils/pagopaProxyUtil";
+import { task, Task } from "fp-ts/lib/Task";
+import { getConfigOrThrow } from "../utils/config";
+
+const config = getConfigOrThrow();
 
 type IGetPaymentInfoHandler = (
   context: Context,
@@ -51,6 +58,16 @@ const ResponseR = t.interface({
   hostname: t.string,
   success: t.boolean
 });
+
+const TEST_RTPID: RptIdFromString = {
+  organizationFiscalCode: config.TEST_ORGANIZATION_FISCAL_CODE.toString(),
+  paymentNoticeNumber: {
+    applicationCode: config.TEST_APPLICATION_CODE.toString(),
+    auxDigit: config.TEST_AUX_DIGIT.toString(),
+    checkDigit: config.TEST_CHECK_DIGIT.toString(),
+    iuv13: config.TEST_IUV13.toString()
+  }
+} as RptIdFromString;
 
 const ResponseO = t.partial({
   "error-codes": t.readonlyArray(t.string, "array of string")
@@ -136,12 +153,26 @@ export const recaptchaCheckTask = (
       )
     );
 
-export function GetPaymentInfoHandler(
+
+const isRegularRptId = (r: RptIdFromString) => r !== TEST_RTPID;
+
+function getPaymentInfoHandlerTask(
+  context: Context,
+  rptId: RptIdFromString,
+  recaptchaResponse: string,
   pagoPaClient: IApiClient,
-  recaptchaSecret: string
-): IGetPaymentInfoHandler {
-  return (context, rptId, recaptchaResponse) =>
-    recaptchaCheckTask(recaptchaResponse, recaptchaSecret)
+  recaptchaSecret: string): Task<IResponseSuccessJson<PaymentRequestsGetResponse> | ErrorResponses>{
+  return eitherFromPredicate(
+    isRegularRptId,
+    (_) => _
+  )(rptId)
+  .fold(
+    () => task.of(ResponseSuccessJson({
+      importoSingoloVersamento: 0,
+      codiceContestoPagamento: "",
+    } as PaymentRequestsGetResponse)),
+    () => 
+      recaptchaCheckTask(recaptchaResponse, recaptchaSecret)
       .mapLeft<ErrorResponses>(e =>
         ResponseErrorUnauthorized("Unauthorized", e.message)
       )
@@ -151,12 +182,19 @@ export function GetPaymentInfoHandler(
           pagoPaClient,
           rptId
         )
-      )
-      .fold<IResponseSuccessJson<PaymentRequestsGetResponse> | ErrorResponses>(
+      ).fold<IResponseSuccessJson<PaymentRequestsGetResponse> | ErrorResponses>(
         identity,
         myPayment => ResponseSuccessJson(myPayment)
       )
-      .run();
+  )
+}
+
+export function GetPaymentInfoHandler(
+  pagoPaClient: IApiClient,
+  recaptchaSecret: string
+): IGetPaymentInfoHandler {
+  return (context, rptId, recaptchaResponse) =>
+    getPaymentInfoHandlerTask(context, rptId, recaptchaResponse, pagoPaClient, recaptchaSecret).run();
 }
 
 export function GetPaymentInfoCtrl(

@@ -24,23 +24,21 @@ import { withApiRequestWrapper } from "../utils/api";
 import { getLogger, ILogger } from "../utils/logging";
 import { ErrorResponses, ResponseErrorUnauthorized } from "../utils/responses";
 
+import { fromPredicate as eitherFromPredicate } from "fp-ts/lib/Either";
+import { task, Task } from "fp-ts/lib/Task";
 import {
   fromEither,
   fromPredicate,
   TaskEither,
   tryCatch
 } from "fp-ts/lib/TaskEither";
-import {
-  fromPredicate as eitherFromPredicate
-} from "fp-ts/lib/Either";
 import { RptIdFromString } from "italia-pagopa-commons/lib/pagopa";
 import { readableReport } from "italia-ts-commons/lib/reporters";
 import { fetchApi } from "../clients/fetchApi";
 import { PaymentProblemJson } from "../generated/pagopa-proxy/PaymentProblemJson";
 import { ProblemJson } from "../generated/pagopa-proxy/ProblemJson";
-import { toErrorPagopaProxyResponse } from "../utils/pagopaProxyUtil";
-import { task, Task } from "fp-ts/lib/Task";
 import { getConfigOrThrow } from "../utils/config";
+import { toErrorPagopaProxyResponse } from "../utils/pagopaProxyUtil";
 
 const config = getConfigOrThrow();
 
@@ -60,12 +58,14 @@ const ResponseR = t.interface({
 });
 
 const TEST_RTPID: RptIdFromString = {
-  organizationFiscalCode: config.TEST_ORGANIZATION_FISCAL_CODE.toString(),
+  organizationFiscalCode: config.TEST_ORGANIZATION_FISCAL_CODE as
+    | string
+    | "77777777777",
   paymentNoticeNumber: {
-    applicationCode: config.TEST_APPLICATION_CODE.toString(),
-    auxDigit: config.TEST_AUX_DIGIT.toString(),
-    checkDigit: config.TEST_CHECK_DIGIT.toString(),
-    iuv13: config.TEST_IUV13.toString()
+    applicationCode: config.TEST_APPLICATION_CODE as string | "00",
+    auxDigit: config.TEST_AUX_DIGIT as string | "0",
+    checkDigit: config.TEST_CHECK_DIGIT as string | "00",
+    iuv13: config.TEST_IUV13 as string | "0000000000000"
   }
 } as RptIdFromString;
 
@@ -153,7 +153,6 @@ export const recaptchaCheckTask = (
       )
     );
 
-
 const isRegularRptId = (r: RptIdFromString) => r !== TEST_RTPID;
 
 function getPaymentInfoHandlerTask(
@@ -161,32 +160,35 @@ function getPaymentInfoHandlerTask(
   rptId: RptIdFromString,
   recaptchaResponse: string,
   pagoPaClient: IApiClient,
-  recaptchaSecret: string): Task<IResponseSuccessJson<PaymentRequestsGetResponse> | ErrorResponses>{
+  recaptchaSecret: string
+): Task<IResponseSuccessJson<PaymentRequestsGetResponse> | ErrorResponses> {
   return eitherFromPredicate(
     isRegularRptId,
-    (_) => _
-  )(rptId)
-  .fold(
-    () => task.of(ResponseSuccessJson({
-      importoSingoloVersamento: 0,
-      codiceContestoPagamento: "",
-    } as PaymentRequestsGetResponse)),
-    () => 
+    _ => _
+  )(rptId).fold(
+    () =>
+      task.of(
+        ResponseSuccessJson({
+          codiceContestoPagamento: "",
+          importoSingoloVersamento: 0
+        } as PaymentRequestsGetResponse)
+      ),
+    () =>
       recaptchaCheckTask(recaptchaResponse, recaptchaSecret)
-      .mapLeft<ErrorResponses>(e =>
-        ResponseErrorUnauthorized("Unauthorized", e.message)
-      )
-      .chain(() =>
-        getPaymentInfoTask(
-          getLogger(context, logPrefix, "GetPaymentInfo"),
-          pagoPaClient,
-          rptId
+        .mapLeft<ErrorResponses>(e =>
+          ResponseErrorUnauthorized("Unauthorized", e.message)
         )
-      ).fold<IResponseSuccessJson<PaymentRequestsGetResponse> | ErrorResponses>(
-        identity,
-        myPayment => ResponseSuccessJson(myPayment)
-      )
-  )
+        .chain(() =>
+          getPaymentInfoTask(
+            getLogger(context, logPrefix, "GetPaymentInfo"),
+            pagoPaClient,
+            rptId
+          )
+        )
+        .fold<
+          IResponseSuccessJson<PaymentRequestsGetResponse> | ErrorResponses
+        >(identity, myPayment => ResponseSuccessJson(myPayment))
+  );
 }
 
 export function GetPaymentInfoHandler(
@@ -194,7 +196,13 @@ export function GetPaymentInfoHandler(
   recaptchaSecret: string
 ): IGetPaymentInfoHandler {
   return (context, rptId, recaptchaResponse) =>
-    getPaymentInfoHandlerTask(context, rptId, recaptchaResponse, pagoPaClient, recaptchaSecret).run();
+    getPaymentInfoHandlerTask(
+      context,
+      rptId,
+      recaptchaResponse,
+      pagoPaClient,
+      recaptchaSecret
+    ).run();
 }
 
 export function GetPaymentInfoCtrl(

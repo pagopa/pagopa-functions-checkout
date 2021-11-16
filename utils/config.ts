@@ -9,21 +9,26 @@ import * as t from "io-ts";
 import { readableReport } from "italia-ts-commons/lib/reporters";
 import { NonEmptyString } from "italia-ts-commons/lib/strings";
 
-// global app configuration
-export type IConfig = t.TypeOf<typeof IConfig>;
-export const IConfig = t.interface({
+export const IConfigR = t.interface({
   IO_PAGOPA_PROXY: NonEmptyString,
   IO_PAY_CHALLENGE_RESUME_URL: NonEmptyString,
   IO_PAY_ORIGIN: NonEmptyString,
   IO_PAY_XPAY_REDIRECT: NonEmptyString,
   PAGOPA_BASE_PATH: NonEmptyString,
-  PAY_PORTAL_RECAPTCHA_SECRET: NonEmptyString,
-  TEST_ORGANIZATION_FISCAL_CODE: NonEmptyString,
-  TEST_APPLICATION_CODE: NonEmptyString,
-  TEST_AUX_DIGIT: NonEmptyString,
-  TEST_CHECK_DIGIT: NonEmptyString,
-  TEST_IUV13: NonEmptyString
+  PAY_PORTAL_RECAPTCHA_SECRET: NonEmptyString
 });
+
+export const IConfigO = t.partial({
+  TEST_APPLICATION_CODE: t.string,
+  TEST_AUX_DIGIT: t.string,
+  TEST_CHECK_DIGIT: t.string,
+  TEST_IUV13: t.string,
+  TEST_ORGANIZATION_FISCAL_CODE: t.string
+});
+
+export const IConfig = t.intersection([IConfigR, IConfigO], "IConfig");
+
+export type IConfig = t.TypeOf<typeof IConfig>;
 
 // No need to re-evaluate this object for each call
 const errorOrConfig: t.Validation<IConfig> = IConfig.decode({

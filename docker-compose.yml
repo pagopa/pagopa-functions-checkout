@@ -51,6 +51,18 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
 
+  pagopa-proxy-mock:
+    build:
+      context: ./
+      dockerfile: docker/proxy-mock/Dockerfile
+    ports:
+      - "3001:1234"
+    expose:
+      - "3001"
+    networks:
+      - io-mock_io-fn
+
+
 networks:
   io-mock_io-fn:
     external: true

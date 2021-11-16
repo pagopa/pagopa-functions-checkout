@@ -1,8 +1,10 @@
 const express = require("express");
+const morgan = require('morgan')
 
 const app = express();
 
 app.use(express.json()) 
+app.use(morgan('combined'))
 
 app.get("/api/v1/payment-requests/:rptId", (_, res) => {
   // test scenario for an error message

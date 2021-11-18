@@ -180,8 +180,8 @@ stages:
             onTimeout: 'skip'
 
   - stage: Deploy_to_PROD
-    # dependsOn:
-      # - UAT_to_PROD_promotion
+    dependsOn:
+      - UAT_to_PROD_promotion
     jobs:
       - job: 'do_deploy'
         steps:

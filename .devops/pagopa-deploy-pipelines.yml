@@ -144,26 +144,26 @@ stages:
   #             slotName: 'production'
   #             displayName: Deploy to UAT
 
-  # - stage: API_Tests
-  #   dependsOn:
-  #     - Deploy_to_UAT
-  #   pool:
-  #     vmImage: 'ubuntu-latest'
-  #   jobs:
-  #     - job: api_tests
-  #       steps:
-  #         - script: |
-  #             yarn global add newman
-  #           displayName: 'newman installation'
-  #         - script: |
-  #             newman run https://raw.githubusercontent.com/pagopa/pagopa-checkout-tests/main/api-tests/checkout-api.tests.json?token=AMO3XDLSCSMYAOKDSZOJSKDBRZI7G --environment=https://raw.githubusercontent.com/pagopa/pagopa-checkout-tests/main/api-tests/uat.envs.json?token=AMO3XDMM22R7X3L2WR3PEU3BRZKGI --reporters cli,junit --reporter-junit-export Results/checkout-api-TEST.xml
-  #           displayName: 'Run api test'
-  #           continueOnError: true 
-  #         - task: PublishTestResults@2
-  #           inputs:
-  #             testResultsFormat: 'JUnit'
-  #             testResultsFiles: '**/*-TEST.xml' 
-  #             searchFolder: '$(System.DefaultWorkingDirectory)'
+  - stage: API_Tests
+    dependsOn:
+      - Deploy_to_UAT
+    pool:
+      vmImage: 'ubuntu-latest'
+    jobs:
+      - job: api_tests
+        steps:
+          - script: |
+              yarn global add newman
+            displayName: 'newman installation'
+          - script: |
+              newman run https://raw.githubusercontent.com/pagopa/pagopa-checkout-tests/main/api-tests/checkout-api.tests.json --environment=https://raw.githubusercontent.com/pagopa/pagopa-checkout-tests/main/api-tests/uat.envs.json --reporters cli,junit --reporter-junit-export Results/checkout-api-TEST.xml
+            displayName: 'Run api test'
+            continueOnError: true 
+          - task: PublishTestResults@2
+            inputs:
+              testResultsFormat: 'JUnit'
+              testResultsFiles: '**/*-TEST.xml' 
+              searchFolder: '$(System.DefaultWorkingDirectory)'
 
   # - stage: UAT_to_PROD_promotion
   #   dependsOn:

@@ -28,14 +28,10 @@ import { PaymentActivationsPostResponse } from "../generated/pagopa-proxy/Paymen
 import { PaymentProblemJson } from "../generated/pagopa-proxy/PaymentProblemJson";
 import { ProblemJson } from "../generated/pagopa-proxy/ProblemJson";
 import { RptId } from "../generated/pagopa-proxy/RptId";
-import { getConfigOrThrow } from "../utils/config";
 import { toErrorPagopaProxyResponse } from "../utils/pagopaProxyUtil";
 
 import { TaskEither } from "fp-ts/lib/TaskEither";
-
-const config = getConfigOrThrow();
-
-const TEST_RTPID = "77777777777000000000000000000" as RptId;
+import { getConfigOrThrow } from "../utils/config";
 
 type IActivatePaymentHandler = (
   context: Context,
@@ -45,6 +41,15 @@ type IActivatePaymentHandler = (
 >;
 
 const logPrefix = "PostActivatePaymentHandler";
+
+const config = getConfigOrThrow();
+
+const TEST_RPTID = (`${(config.TEST_ORGANIZATION_FISCAL_CODE as string) ||
+  "77777777777"}` +
+  `${(config.TEST_APPLICATION_CODE as string) || "00"}` +
+  `${(config.TEST_AUX_DIGIT as string) || "0"}` +
+  `${(config.TEST_CHECK_DIGIT as string) || "00"}` +
+  `${(config.TEST_IUV13 as string) || "0000000000000"}`) as RptId;
 
 const activatePaymentTask = (
   logger: ILogger,
@@ -68,7 +73,7 @@ function getActivatePaymentHandlerTask(
   paymentRequest: PaymentActivationsPostRequest
 ): Task<IResponseSuccessJson<PaymentActivationsPostResponse> | ErrorResponses> {
   return eitherFromPredicate(
-    rptId => rptId !== TEST_RTPID,
+    rptId => rptId !== TEST_RPTID,
     _ => _
   )(paymentRequest.rptId).fold(
     () => task.of(ResponseSuccessJson({} as PaymentActivationsPostResponse)),

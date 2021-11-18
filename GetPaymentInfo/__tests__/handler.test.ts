@@ -8,7 +8,11 @@ process.env = {
   IO_PAGOPA_PROXY_PROD_BASE_URL: "http://localhost:7071/api/v1",
   IO_PAGOPA_PROXY_TEST_BASE_URL: "http://localhost:7071/api/v1",
   PAGOPA_BASE_PATH: "NonEmptyString",
-  IO_PAY_XPAY_REDIRECT: "http://localhost"
+  IO_PAY_XPAY_REDIRECT: "http://localhost",
+  IO_PAY_CHALLENGE_RESUME_URL: "NonEmptyString",
+  IO_PAY_ORIGIN: "NonEmptyString",
+  PAY_PORTAL_RECAPTCHA_SECRET: "NonEmptyString",
+  IO_PAGOPA_PROXY: "NonEmptyString"
 };
 
 import { left, right } from "fp-ts/lib/Either";

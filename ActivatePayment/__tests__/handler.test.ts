@@ -1,12 +1,23 @@
 /* tslint:disable */
 import { Context } from "@azure/functions";
 import { right } from "fp-ts/lib/Either";
+
+process.env = {
+  IO_PAGOPA_PROXY: "NonEmptyString",
+  IO_PAY_CHALLENGE_RESUME_URL: "NonEmptyString",
+  IO_PAY_ORIGIN: "NonEmptyString",
+  IO_PAY_XPAY_REDIRECT: "http://localhost",
+  PAGOPA_BASE_PATH: "NonEmptyString",
+  PAY_PORTAL_RECAPTCHA_SECRET: "NonEmptyString"
+};
+
 import { ActivatePaymentHandler } from "../handler";
 
 import {
   invalidPaymentActivationsRequest,
   validPaymentActivationsRequest
 } from "../../__mocks__/mock";
+
 
 const context = ({
   bindings: {},

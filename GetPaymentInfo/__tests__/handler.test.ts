@@ -17,11 +17,13 @@ import * as logger from "../../utils/logging";
 
 import { PaymentRequestsGetResponse } from "../../generated/definitions/PaymentRequestsGetResponse";
 
-import { RptIdFromString } from "italia-pagopa-commons/lib/pagopa";
+import { RptIdFromString } from "../../utils/RptIdFromString";
 
 import * as handlers from "../handler";
 
-import { taskEither } from "fp-ts/lib/TaskEither";
+import * as TE from "fp-ts/lib/TaskEither";
+import * as E from "fp-ts/lib/Either"
+
 import { ResponseRecaptcha } from "../handler";
 
 import * as fetch from "../../clients/fetchApi";
@@ -55,7 +57,7 @@ afterEach(() => {
 
 it("should return a payment info KO response", async () => {
   jest.spyOn(handlers, "recaptchaCheckTask").mockReturnValueOnce(
-    taskEither.of({
+    TE.of({
       challenge_ts: "challenge_ts",
       hostname: "hostname",
       success: true
@@ -99,7 +101,7 @@ it("should return a payment info KO response", async () => {
 
 it("should return a payment info OK response PaymentRequestsGetResponse", async () => {
   jest.spyOn(handlers, "recaptchaCheckTask").mockReturnValueOnce(
-    taskEither.of({
+    TE.of({
       challenge_ts: "challenge_ts",
       hostname: "hostname",
       success: true
@@ -153,20 +155,18 @@ it("should return Error if recaptcha check fails - recaptchaCheckTask", async ()
   );
 
   const result = await handlers
-    .recaptchaCheckTask("recaptchaResponse", "recaptchaSecret")
-    .run();
+    .recaptchaCheckTask("recaptchaResponse", "recaptchaSecret")();
 
-  expect(result.isLeft()).toBe(true);
+  expect(E.isLeft(result)).toBe(true);
 });
 
 it("should return Error if there is a network error - recaptchaCheckTask", async () => {
   jest.spyOn(fetch, "fetchApi").mockReturnValueOnce(Promise.reject());
 
   const result = await handlers
-    .recaptchaCheckTask("recaptchaResponse", "recaptchaSecret")
-    .run();
+    .recaptchaCheckTask("recaptchaResponse", "recaptchaSecret")();
 
-  expect(result.isLeft()).toBe(true);
+  expect(E.isLeft(result)).toBe(true);
 });
 
 it("should return Error if the json response is invalid  - recaptchaCheckTask", async () => {
@@ -179,15 +179,14 @@ it("should return Error if the json response is invalid  - recaptchaCheckTask", 
   );
 
   const result = await handlers
-    .recaptchaCheckTask("recaptchaResponse", "recaptchaSecret")
-    .run();
+    .recaptchaCheckTask("recaptchaResponse", "recaptchaSecret")();
 
-  expect(result.isLeft()).toBe(true);
+  expect(E.isLeft(result)).toBe(true);
 });
 
 it("should return IResponseErrorValidation response when pagopa proxy return 500 with PAYMENT_ONGOING", async () => {
   jest.spyOn(handlers, "recaptchaCheckTask").mockReturnValueOnce(
-    taskEither.of({
+    TE.of({
       challenge_ts: "challenge_ts",
       hostname: "hostname",
       success: true
@@ -232,7 +231,7 @@ it("should return IResponseErrorValidation response when pagopa proxy return 500
 
 it("should return IResponseErrorInternal response when pagopa proxy return 500 without details", async () => {
   jest.spyOn(handlers, "recaptchaCheckTask").mockReturnValueOnce(
-    taskEither.of({
+    TE.of({
       challenge_ts: "challenge_ts",
       hostname: "hostname",
       success: true

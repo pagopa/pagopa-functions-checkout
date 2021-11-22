@@ -2,8 +2,6 @@
  * Typescript (io-ts) types related to PagoPA.
  */
 import {
-  // tslint:disable-next-line:no-unused-variable
-  IPatternStringTag,
   OrganizationFiscalCode,
   PatternString
 } from "@pagopa/ts-commons/lib/strings";
@@ -44,10 +42,6 @@ export const AmountInEuroCentsFromNumber = new t.Type<
 );
 
 const PAYMENT_NOTICE_NUMBER_LENGTH = 18;
-
-const MIN_QR_CODE_LENGTH = 43;
-const MAX_QR_CODE_LENGTH = 52;
-
 const ORGANIZATION_FISCAL_CODE_LENGTH = 11;
 
 const RPT_ID_LENGTH =

@@ -1,37 +1,34 @@
 import * as express from "express";
+import * as E from "fp-ts/lib/Either";
+import * as TE from "fp-ts/lib/TaskEither";
 import * as t from "io-ts";
 
 import { Context } from "@azure/functions";
-import { ContextMiddleware } from "io-functions-commons/dist/src/utils/middlewares/context_middleware";
+import { ContextMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/context_middleware";
 
-import { identity } from "fp-ts/lib/function";
+import { identity, pipe } from "fp-ts/lib/function";
 import { IApiClient } from "../clients/pagopa";
 
-import { RequiredParamMiddleware } from "io-functions-commons/dist/src/utils/middlewares/required_param";
-import { RequiredQueryParamMiddleware } from "io-functions-commons/dist/src/utils/middlewares/required_query_param";
+import { RequiredParamMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/required_param";
+import { RequiredQueryParamMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/required_query_param";
 
 import {
   withRequestMiddlewares,
   wrapRequestHandler
-} from "io-functions-commons/dist/src/utils/request_middleware";
+} from "@pagopa/io-functions-commons/dist/src/utils/request_middleware";
 import {
   IResponseSuccessJson,
   ResponseSuccessJson
-} from "italia-ts-commons/lib/responses";
+} from "@pagopa/ts-commons/lib/responses";
 
 import { PaymentRequestsGetResponse } from "../generated/definitions/PaymentRequestsGetResponse";
 import { withApiRequestWrapper } from "../utils/api";
 import { getLogger, ILogger } from "../utils/logging";
 import { ErrorResponses, ResponseErrorUnauthorized } from "../utils/responses";
 
-import {
-  fromEither,
-  fromPredicate,
-  TaskEither,
-  tryCatch
-} from "fp-ts/lib/TaskEither";
-import { RptIdFromString } from "italia-pagopa-commons/lib/pagopa";
-import { readableReport } from "italia-ts-commons/lib/reporters";
+import { RptIdFromString } from "@pagopa/io-pagopa-commons/lib/pagopa";
+import { readableReport } from "@pagopa/ts-commons/lib/reporters";
+import { TaskEither } from "fp-ts/lib/TaskEither";
 import { fetchApi } from "../clients/fetchApi";
 import { PaymentProblemJson } from "../generated/pagopa-proxy/PaymentProblemJson";
 import { ProblemJson } from "../generated/pagopa-proxy/ProblemJson";
@@ -93,70 +90,72 @@ export const recaptchaCheckTask = (
   recaptchaSecret: string,
   googleHost: string = "https://www.google.com"
 ): TaskEither<Error, ResponseRecaptcha> =>
-  tryCatch(
-    () =>
-      fetchApi(`${googleHost}/recaptcha/api/siteverify`, {
-        body: `secret=${recaptchaSecret}&response=${recaptchaResponse}`,
-        headers: {
-          // tslint:disable-next-line: no-duplicate-string
-          "Content-Type": "application/x-www-form-urlencoded"
-        },
-        method: "POST"
-      }),
-    err => new Error(`Error posting recaptcha API: ${err}`)
-  )
-    .chain(
-      fromPredicate<Error, Response>(
+  pipe(
+    TE.tryCatch(
+      () =>
+        fetchApi(`${googleHost}/recaptcha/api/siteverify`, {
+          body: `secret=${recaptchaSecret}&response=${recaptchaResponse}`,
+          headers: {
+            // tslint:disable-next-line: no-duplicate-string
+            "Content-Type": "application/x-www-form-urlencoded"
+          },
+          method: "POST"
+        }),
+      err => new Error(`Error posting recaptcha API: ${err}`)
+    ),
+    TE.chain(
+      TE.fromPredicate<Error, Response>(
         r => r.ok,
         r => new Error(`Error returned from recaptcha API: ${r.status}`)
       )
-    )
-    .chain(response =>
-      tryCatch(
+    ),
+    TE.chain(response =>
+      TE.tryCatch(
         () => response.json(),
         err => new Error(`Error getting recaptcha API payload: ${err}`)
       )
-    )
-    .chain(json =>
-      fromEither(
-        ResponseRecaptcha.decode(json).mapLeft(
-          errors =>
-            new Error(
-              `Error while decoding response from recaptcha: ${readableReport(
-                errors
-              )})`
-            )
+    ),
+    TE.chain(json =>
+      TE.fromEither(
+        pipe(
+          ResponseRecaptcha.decode(json),
+          E.mapLeft(
+            errors =>
+              new Error(
+                `Error while decoding response from recaptcha: ${readableReport(
+                  errors
+                )})`
+              )
+          )
         )
       )
-    )
-    .chain(
-      fromPredicate(
+    ),
+    TE.chain(
+      TE.fromPredicate(
         ar => ar.success,
         _ => new Error(`Error checking recaptcha`)
       )
-    );
+    )
+  );
 
 export function GetPaymentInfoHandler(
   pagoPaClient: IApiClient,
   recaptchaSecret: string
 ): IGetPaymentInfoHandler {
   return (context, rptId, recaptchaResponse) =>
-    recaptchaCheckTask(recaptchaResponse, recaptchaSecret)
-      .mapLeft<ErrorResponses>(e =>
-        ResponseErrorUnauthorized("Unauthorized", e.message)
-      )
-      .chain(() =>
+    pipe(
+      recaptchaCheckTask(recaptchaResponse, recaptchaSecret),
+      TE.mapLeft(e => ResponseErrorUnauthorized("Unauthorized", e.message)),
+      TE.chain(() =>
         getPaymentInfoTask(
           getLogger(context, logPrefix, "GetPaymentInfo"),
           pagoPaClient,
           rptId
         )
-      )
-      .fold<IResponseSuccessJson<PaymentRequestsGetResponse> | ErrorResponses>(
-        identity,
-        myPayment => ResponseSuccessJson(myPayment)
-      )
-      .run();
+      ),
+      TE.map(myPayment => ResponseSuccessJson(myPayment)),
+      TE.toUnion
+    )();
 }
 
 export function GetPaymentInfoCtrl(

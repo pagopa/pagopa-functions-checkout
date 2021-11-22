@@ -3,11 +3,15 @@ import * as winston from "winston";
 
 import { Context } from "@azure/functions";
 
-import { secureExpressApp } from "io-functions-commons/dist/src/utils/express";
-import { AzureContextTransport } from "io-functions-commons/dist/src/utils/logging";
-import { setAppContext } from "io-functions-commons/dist/src/utils/middlewares/context_middleware";
-import createAzureFunctionHandler from "io-functions-express/dist/src/createAzureFunctionsHandler";
+import createAzureFunctionHandler from "@pagopa/express-azure-functions/dist/src/createAzureFunctionsHandler";
+import { secureExpressApp } from "@pagopa/io-functions-commons/dist/src/utils/express";
+import { AzureContextTransport } from "@pagopa/io-functions-commons/dist/src/utils/logging";
+import { setAppContext } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/context_middleware";
+
 import { BrowserInfoResponse } from "../generated/definitions/BrowserInfoResponse";
+
+import * as E from "fp-ts/lib/Either";
+import { pipe } from "fp-ts/lib/function";
 
 // tslint:disable-next-line: no-let
 let logger: Context["log"] | undefined;
@@ -32,9 +36,12 @@ app.get("/api/v1/browsers/current/info", (req, res) => {
     ip: req.ip,
     useragent: req.get("User-Agent")
   };
-  return BrowserInfoResponse.decode(browserInfo).fold(
-    _ => res.sendStatus(400),
-    browserInfoResult => res.send(browserInfoResult)
+  return pipe(
+    BrowserInfoResponse.decode(browserInfo),
+    E.fold(
+      _ => res.sendStatus(400),
+      browserInfoResult => res.send(browserInfoResult)
+    )
   );
 });
 

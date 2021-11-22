@@ -1,6 +1,6 @@
 import { Context } from "@azure/functions";
+import { errorsToReadableMessages } from "@pagopa/ts-commons/lib/reporters";
 import { Errors } from "io-ts";
-import { errorsToReadableMessages } from "italia-ts-commons/lib/reporters";
 
 export const getLogger = (
   context: Context,

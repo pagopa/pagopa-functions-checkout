@@ -26,13 +26,13 @@ import { withApiRequestWrapper } from "../utils/api";
 import { getLogger, ILogger } from "../utils/logging";
 import { ErrorResponses, ResponseErrorUnauthorized } from "../utils/responses";
 
-import { RptIdFromString } from "../utils/RptIdFromString";
 import { readableReport } from "@pagopa/ts-commons/lib/reporters";
 import { TaskEither } from "fp-ts/lib/TaskEither";
 import { fetchApi } from "../clients/fetchApi";
 import { PaymentProblemJson } from "../generated/pagopa-proxy/PaymentProblemJson";
 import { ProblemJson } from "../generated/pagopa-proxy/ProblemJson";
 import { toErrorPagopaProxyResponse } from "../utils/pagopaProxyUtil";
+import { RptIdFromString } from "../utils/RptIdFromString";
 
 type IGetPaymentInfoHandler = (
   context: Context,

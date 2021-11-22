@@ -16,12 +16,12 @@ import { apiClient } from "../../clients/pagopa";
 
 import * as logger from "../../utils/logging";
 
-import { RptIdFromString } from "italia-pagopa-commons/lib/pagopa";
 
 import * as handlers from "../handler";
 
 import { taskEither } from "fp-ts/lib/TaskEither";
 import { ResponseRecaptcha } from "../handler";
+import { RptIdFromString } from "../../utils/RptIdFromString";
 
 const context = ({
   bindings: {},

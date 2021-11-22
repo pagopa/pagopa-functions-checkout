@@ -8,10 +8,10 @@
   "extensions": {
     "http": {
       "routePrefix": ""
-    },
-    "durableTask": {
-      "hubName": "%SLOT_TASK_HUBNAME%"
     }
+  },
+  "tracing": {
+    "traceInputsAndOutputs": true
   },
   "extensionBundle": {
     "id": "Microsoft.Azure.Functions.ExtensionBundle",

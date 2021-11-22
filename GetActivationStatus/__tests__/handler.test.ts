@@ -14,13 +14,7 @@ process.env = {
 };
 // debug("ENV", process.env);
 
-import { apiClient } from "../../clients/pagopa";
 
-import { fromEither, fromLeft } from "fp-ts/lib/TaskEither";
-import {
-  ResponseErrorNotFound,
-  ResponseSuccessJson
-} from "italia-ts-commons/lib/responses";
 import { left, right } from "fp-ts/lib/Either";
 
 import * as logger from "../../utils/logging";

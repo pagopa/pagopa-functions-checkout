@@ -1,21 +1,23 @@
 import * as express from "express";
 
 import { Context } from "@azure/functions";
-import { ContextMiddleware } from "io-functions-commons/dist/src/utils/middlewares/context_middleware";
+import { ContextMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/context_middleware";
 
-import { identity } from "fp-ts/lib/function";
+import { pipe } from "fp-ts/lib/function";
+import * as TE from "fp-ts/lib/TaskEither";
+
 import { IApiClient } from "../clients/pagopa";
 
-import { RequiredBodyPayloadMiddleware } from "io-functions-commons/dist/src/utils/middlewares/required_body_payload";
+import { RequiredBodyPayloadMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/required_body_payload";
 
 import {
   withRequestMiddlewares,
   wrapRequestHandler
-} from "io-functions-commons/dist/src/utils/request_middleware";
+} from "@pagopa/io-functions-commons/dist/src/utils/request_middleware";
 import {
   IResponseSuccessJson,
   ResponseSuccessJson
-} from "italia-ts-commons/lib/responses";
+} from "@pagopa/ts-commons/lib/responses";
 
 import { withApiRequestWrapper } from "../utils/api";
 import { getLogger, ILogger } from "../utils/logging";
@@ -57,16 +59,15 @@ export function ActivatePaymentHandler(
   pagoPaClient: IApiClient
 ): IActivatePaymentHandler {
   return (context, paymentRequest) => {
-    return activatePaymentTask(
-      getLogger(context, logPrefix, "ActivatePayment"),
-      pagoPaClient,
-      paymentRequest
-    )
-      .map(myPayment => ResponseSuccessJson(myPayment))
-      .fold<
-        IResponseSuccessJson<PaymentActivationsPostResponse> | ErrorResponses
-      >(identity, identity)
-      .run();
+    return pipe(
+      activatePaymentTask(
+        getLogger(context, logPrefix, "ActivatePayment"),
+        pagoPaClient,
+        paymentRequest
+      ),
+      TE.map(myPayment => ResponseSuccessJson(myPayment)),
+      TE.toUnion
+    )();
   };
 }
 

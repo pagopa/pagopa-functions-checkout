@@ -1,16 +1,16 @@
-import { toError } from "fp-ts/lib/Either";
-import {
-  fromEither,
-  taskEither,
-  TaskEither,
-  tryCatch
-} from "fp-ts/lib/TaskEither";
-import { readableReport } from "italia-ts-commons/lib/reporters";
+import { readableReport } from "@pagopa/ts-commons/lib/reporters";
+import * as E from "fp-ts/lib/Either";
+import { pipe } from "fp-ts/lib/function";
+import * as TE from "fp-ts/lib/TaskEither";
+import { TaskEither } from "fp-ts/lib/TaskEither";
 import fetch from "node-fetch";
 import { getConfig, IConfig } from "./config";
 
 type ProblemSource = "Config" | "Url";
-export type HealthProblem<S extends ProblemSource> = string & { __source: S };
+export type HealthProblem<S extends ProblemSource> = string & {
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  readonly __source: S;
+};
 export type HealthCheck<
   S extends ProblemSource = ProblemSource,
   T = true
@@ -26,7 +26,7 @@ const formatProblem = <S extends ProblemSource>(
 const toHealthProblems = <S extends ProblemSource>(source: S) => (
   e: unknown
 ): ReadonlyArray<HealthProblem<S>> => [
-  formatProblem(source, toError(e).message)
+  formatProblem(source, E.toError(e).message)
 ];
 
 /**
@@ -35,10 +35,14 @@ const toHealthProblems = <S extends ProblemSource>(source: S) => (
  * @returns either true or an array of error messages
  */
 export const checkConfigHealth = (): HealthCheck<"Config", IConfig> =>
-  fromEither(getConfig()).mapLeft(errors =>
-    errors.map(e =>
-      // give each problem its own line
-      formatProblem("Config", readableReport([e]))
+  pipe(
+    getConfig(),
+    TE.fromEither,
+    TE.mapLeft(errors =>
+      errors.map(e =>
+        // give each problem its own line
+        formatProblem("Config", readableReport([e]))
+      )
     )
   );
 
@@ -50,8 +54,9 @@ export const checkConfigHealth = (): HealthCheck<"Config", IConfig> =>
  * @returns either true or an array of error messages
  */
 export const checkUrlHealth = (url: string): HealthCheck<"Url", true> =>
-  tryCatch(() => fetch(url, { method: "HEAD" }), toHealthProblems("Url")).map(
-    _ => true
+  pipe(
+    TE.tryCatch(() => fetch(url, { method: "HEAD" }), toHealthProblems("Url")),
+    TE.map(_ => true)
   );
 
 /**
@@ -60,7 +65,8 @@ export const checkUrlHealth = (url: string): HealthCheck<"Url", true> =>
  * @returns either true or an array of error messages
  */
 export const checkApplicationHealth = (): HealthCheck<ProblemSource, true> =>
-  taskEither
-    .of<ReadonlyArray<HealthProblem<ProblemSource>>, void>(void 0)
-    .chain(_ => checkConfigHealth())
-    .map(_ => true);
+  pipe(
+    TE.of<ReadonlyArray<HealthProblem<"Config">>, void>(void 0),
+    TE.chain(_ => checkConfigHealth()),
+    TE.map(_ => true)
+  );

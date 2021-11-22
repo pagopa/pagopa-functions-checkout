@@ -1,11 +1,12 @@
-import { IResponseType } from "italia-ts-commons/lib/requests";
+import { IResponseType } from "@pagopa/ts-commons/lib/requests";
 import {
   ResponseErrorForbiddenNotAuthorized,
   ResponseErrorInternal,
   ResponseErrorNotFound,
   ResponseErrorTooManyRequests,
   ResponseErrorValidation
-} from "italia-ts-commons/lib/responses";
+} from "@pagopa/ts-commons/lib/responses";
+import { pipe } from "fp-ts/lib/function";
 import { PaymentProblemJson } from "../generated/pagopa-proxy/PaymentProblemJson";
 import { ILogger } from "./logging";
 import {
@@ -13,6 +14,9 @@ import {
   ResponseErrorUnauthorized,
   unhandledResponseStatus
 } from "./responses";
+
+import * as E from "fp-ts/lib/Either";
+import { Errors } from "io-ts";
 
 export const toErrorPagopaProxyResponse = <S extends number, T>(
   response: IResponseType<S, T>,
@@ -29,17 +33,21 @@ export const toErrorPagopaProxyResponse = <S extends number, T>(
     case 429:
       return ResponseErrorTooManyRequests("Too many requests");
     case 500:
-      return PaymentProblemJson.decode(response.value).fold<ErrorResponses>(
-        error => {
-          logger.logWarning(error);
-          return ResponseErrorInternal("Generic Error");
-        },
-        result => {
-          const detail = result.detail_v2 ? result.detail_v2 : result.detail;
-          logger.logInfo(`pagoPA proxy [rptId: ${rptId}, detail: ${detail}]`);
-          return ResponseErrorValidation("Validation Error", detail);
-        }
+      return pipe(
+        PaymentProblemJson.decode(response.value),
+        E.fold<Errors, PaymentProblemJson, ErrorResponses>(
+          error => {
+            logger.logWarning(error);
+            return ResponseErrorInternal("Generic Error");
+          },
+          result => {
+            const detail = result.detail_v2 ? result.detail_v2 : result.detail;
+            logger.logInfo(`pagoPA proxy [rptId: ${rptId}, detail: ${detail}]`);
+            return ResponseErrorValidation("Validation Error", detail);
+          }
+        )
       );
+
     default:
       return unhandledResponseStatus(response.status);
   }

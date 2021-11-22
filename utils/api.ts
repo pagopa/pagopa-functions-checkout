@@ -1,11 +1,9 @@
-import {
-  fromLeft,
-  TaskEither,
-  taskEither,
-  tryCatch
-} from "fp-ts/lib/TaskEither";
+import { IResponseType } from "@pagopa/ts-commons/lib/requests";
+import * as E from "fp-ts/lib/Either";
+import { pipe } from "fp-ts/lib/function";
+import * as TE from "fp-ts/lib/TaskEither";
+import { TaskEither } from "fp-ts/lib/TaskEither";
 import * as t from "io-ts";
-import { IResponseType } from "italia-ts-commons/lib/requests";
 import { ILogger } from "./logging";
 import {
   ErrorResponses,
@@ -23,25 +21,31 @@ export const withApiRequestWrapper = <T, V>(
     response: IResponseType<S, V>
   ) => ErrorResponses = toErrorServerResponse
 ): TaskEither<ErrorResponses, T> =>
-  tryCatch(
-    () => apiCallWithParams(),
-    errs => {
-      logger.logUnknown(errs);
-      return toDefaultResponseErrorInternal(errs);
-    }
-  ).foldTaskEither(
-    err => fromLeft(err),
-    errorOrResponse =>
-      errorOrResponse.fold(
-        errs => {
-          logger.logErrors(errs);
-          return fromLeft(toDefaultResponseErrorInternal(errs));
-        },
-        responseType =>
-          responseType.status !== successStatusCode
-            ? fromLeft(
-                errorServerHandler(responseType as IResponseType<number, V>)
-              )
-            : taskEither.of(responseType.value as T)
-      )
+  pipe(
+    TE.tryCatch(
+      () => apiCallWithParams(),
+      errs => {
+        logger.logUnknown(errs);
+        return toDefaultResponseErrorInternal(errs);
+      }
+    ),
+    TE.fold(
+      err => TE.left(err),
+      errorOrResponse =>
+        pipe(
+          errorOrResponse,
+          E.fold(
+            errs => {
+              logger.logErrors(errs);
+              return TE.left(toDefaultResponseErrorInternal(errs));
+            },
+            responseType =>
+              responseType.status !== successStatusCode
+                ? TE.left(
+                    errorServerHandler(responseType as IResponseType<number, V>)
+                  )
+                : TE.of(responseType.value as T)
+          )
+        )
+    )
   );

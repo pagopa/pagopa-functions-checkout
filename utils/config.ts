@@ -5,9 +5,15 @@
  * The configuration is evaluate eagerly at the first access to the module. The module exposes convenient methods to access such value.
  */
 
+import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
+
+import * as E from "fp-ts/lib/Either";
+
 import * as t from "io-ts";
-import { readableReport } from "italia-ts-commons/lib/reporters";
-import { NonEmptyString } from "italia-ts-commons/lib/strings";
+
+import { readableReport } from "@pagopa/ts-commons/lib/reporters";
+
+import { pipe } from "fp-ts/lib/function";
 
 // global app configuration
 export type IConfig = t.TypeOf<typeof IConfig>;
@@ -43,7 +49,10 @@ export function getConfig(): t.Validation<IConfig> {
  * @throws validation errors found while parsing the application configuration
  */
 export function getConfigOrThrow(): IConfig {
-  return errorOrConfig.getOrElseL(errors => {
-    throw new Error(`Invalid configuration: ${readableReport(errors)}`);
-  });
+  return pipe(
+    errorOrConfig,
+    E.getOrElse(errors => {
+      throw new Error(`Invalid configuration: ${readableReport(errors)}`);
+    })
+  );
 }

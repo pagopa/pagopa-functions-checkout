@@ -6,7 +6,7 @@ import * as t from "io-ts";
 import { Context } from "@azure/functions";
 import { ContextMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/context_middleware";
 
-import { pipe } from "fp-ts/lib/function";
+import { flow, pipe } from "fp-ts/lib/function";
 import { IApiClient } from "../clients/pagopa";
 
 import { RequiredParamMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/required_param";
@@ -33,12 +33,29 @@ import { PaymentProblemJson } from "../generated/pagopa-proxy/PaymentProblemJson
 import { ProblemJson } from "../generated/pagopa-proxy/ProblemJson";
 import { toErrorPagopaProxyResponse } from "../utils/pagopaProxyUtil";
 import { RptIdFromString } from "../utils/RptIdFromString";
+import { getConfigOrThrow } from "../utils/config";
+import { Task } from "fp-ts/lib/Task";
+import { task } from "fp-ts";
+
 
 type IGetPaymentInfoHandler = (
   context: Context,
   rptId: RptIdFromString,
   recaptchaResponse: string
 ) => Promise<IResponseSuccessJson<PaymentRequestsGetResponse> | ErrorResponses>;
+
+const config = getConfigOrThrow()
+
+const TEST_RTPID = {
+  organizationFiscalCode:
+    (config.TEST_ORGANIZATION_FISCAL_CODE as string) || "77777777777",
+  paymentNoticeNumber: {
+    applicationCode: (config.TEST_APPLICATION_CODE as string) || "00",
+    auxDigit: (config.TEST_AUX_DIGIT as string) || "0",
+    checkDigit: (config.TEST_CHECK_DIGIT as string) || "00",
+    iuv13: (config.TEST_IUV13 as string) || "0000000000000"
+  }
+} as RptIdFromString;
 
 /**
  * Model for Google reCaptcha response
@@ -138,24 +155,53 @@ export const recaptchaCheckTask = (
     )
   );
 
+const isRegularRptId = (r: RptIdFromString) =>
+  JSON.stringify(r) !== JSON.stringify(TEST_RTPID);
+
+function GetPaymentInfoHandlerTask(
+  pagoPaClient: IApiClient,
+  recaptchaSecret: string,
+  context: Context,
+  rptId: RptIdFromString,
+  recaptchaResponse: string): Task<IResponseSuccessJson<PaymentRequestsGetResponse> | ErrorResponses> {
+    return flow(
+      E.fromPredicate(
+        isRegularRptId,
+        _ => _
+      ),
+      E.map( _ =>
+        pipe(
+          recaptchaCheckTask(recaptchaResponse, recaptchaSecret),
+          TE.mapLeft(e => ResponseErrorUnauthorized("Unauthorized", e.message)),
+          TE.chain(() =>
+            getPaymentInfoTask(
+              getLogger(context, logPrefix, "GetPaymentInfo"),
+              pagoPaClient,
+              rptId
+            )
+          ),
+          TE.map(myPayment => ResponseSuccessJson(myPayment)),
+          TE.toUnion
+        )
+      ),
+      E.mapLeft( _ =>
+        task.of(
+          ResponseSuccessJson({
+            codiceContestoPagamento: "",
+            importoSingoloVersamento: 0
+          } as PaymentRequestsGetResponse)
+        )
+      ),
+      E.toUnion
+    )(rptId)
+}
+
 export function GetPaymentInfoHandler(
   pagoPaClient: IApiClient,
   recaptchaSecret: string
 ): IGetPaymentInfoHandler {
   return (context, rptId, recaptchaResponse) =>
-    pipe(
-      recaptchaCheckTask(recaptchaResponse, recaptchaSecret),
-      TE.mapLeft(e => ResponseErrorUnauthorized("Unauthorized", e.message)),
-      TE.chain(() =>
-        getPaymentInfoTask(
-          getLogger(context, logPrefix, "GetPaymentInfo"),
-          pagoPaClient,
-          rptId
-        )
-      ),
-      TE.map(myPayment => ResponseSuccessJson(myPayment)),
-      TE.toUnion
-    )();
+  GetPaymentInfoHandlerTask(pagoPaClient, recaptchaSecret, context, rptId, recaptchaResponse)();
 }
 
 export function GetPaymentInfoCtrl(

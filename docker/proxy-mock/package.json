@@ -1,0 +1,10 @@
+{
+    "name": "pagopaproxy-mock",
+    "version": "1.0.0",
+    "description": "Mock server for pagopa-proxy",
+    "main": "server.js",
+    "dependencies": {
+      "express": "^4.12.3",
+      "morgan": "^1.10.0"
+    }
+  }

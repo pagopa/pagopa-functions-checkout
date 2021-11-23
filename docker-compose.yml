@@ -40,9 +40,9 @@ services:
       context: ./
       dockerfile: docker/proxy-mock/Dockerfile
     ports:
-      - "3001:1234"
+      - "1234:1234"
     expose:
-      - "3001"
+      - "1234"
     networks:
       - io-mock_io-fn
 

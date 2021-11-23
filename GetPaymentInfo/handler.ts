@@ -27,16 +27,15 @@ import { getLogger, ILogger } from "../utils/logging";
 import { ErrorResponses, ResponseErrorUnauthorized } from "../utils/responses";
 
 import { readableReport } from "@pagopa/ts-commons/lib/reporters";
+import { task } from "fp-ts";
+import { Task } from "fp-ts/lib/Task";
 import { TaskEither } from "fp-ts/lib/TaskEither";
 import { fetchApi } from "../clients/fetchApi";
 import { PaymentProblemJson } from "../generated/pagopa-proxy/PaymentProblemJson";
 import { ProblemJson } from "../generated/pagopa-proxy/ProblemJson";
+import { getConfigOrThrow } from "../utils/config";
 import { toErrorPagopaProxyResponse } from "../utils/pagopaProxyUtil";
 import { RptIdFromString } from "../utils/RptIdFromString";
-import { getConfigOrThrow } from "../utils/config";
-import { Task } from "fp-ts/lib/Task";
-import { task } from "fp-ts";
-
 
 type IGetPaymentInfoHandler = (
   context: Context,
@@ -44,7 +43,7 @@ type IGetPaymentInfoHandler = (
   recaptchaResponse: string
 ) => Promise<IResponseSuccessJson<PaymentRequestsGetResponse> | ErrorResponses>;
 
-const config = getConfigOrThrow()
+const config = getConfigOrThrow();
 
 const TEST_RTPID = {
   organizationFiscalCode:
@@ -163,37 +162,35 @@ function GetPaymentInfoHandlerTask(
   recaptchaSecret: string,
   context: Context,
   rptId: RptIdFromString,
-  recaptchaResponse: string): Task<IResponseSuccessJson<PaymentRequestsGetResponse> | ErrorResponses> {
-    return flow(
-      E.fromPredicate(
-        isRegularRptId,
-        _ => _
-      ),
-      E.map( _ =>
-        pipe(
-          recaptchaCheckTask(recaptchaResponse, recaptchaSecret),
-          TE.mapLeft(e => ResponseErrorUnauthorized("Unauthorized", e.message)),
-          TE.chain(() =>
-            getPaymentInfoTask(
-              getLogger(context, logPrefix, "GetPaymentInfo"),
-              pagoPaClient,
-              rptId
-            )
-          ),
-          TE.map(myPayment => ResponseSuccessJson(myPayment)),
-          TE.toUnion
-        )
-      ),
-      E.mapLeft( _ =>
-        task.of(
-          ResponseSuccessJson({
-            codiceContestoPagamento: "",
-            importoSingoloVersamento: 0
-          } as PaymentRequestsGetResponse)
-        )
-      ),
-      E.toUnion
-    )(rptId)
+  recaptchaResponse: string
+): Task<IResponseSuccessJson<PaymentRequestsGetResponse> | ErrorResponses> {
+  return flow(
+    E.fromPredicate(isRegularRptId, _ => _),
+    E.map(_ =>
+      pipe(
+        recaptchaCheckTask(recaptchaResponse, recaptchaSecret),
+        TE.mapLeft(e => ResponseErrorUnauthorized("Unauthorized", e.message)),
+        TE.chain(() =>
+          getPaymentInfoTask(
+            getLogger(context, logPrefix, "GetPaymentInfo"),
+            pagoPaClient,
+            rptId
+          )
+        ),
+        TE.map(myPayment => ResponseSuccessJson(myPayment)),
+        TE.toUnion
+      )
+    ),
+    E.mapLeft(_ =>
+      task.of(
+        ResponseSuccessJson({
+          codiceContestoPagamento: "",
+          importoSingoloVersamento: 0
+        } as PaymentRequestsGetResponse)
+      )
+    ),
+    E.toUnion
+  )(rptId);
 }
 
 export function GetPaymentInfoHandler(
@@ -201,7 +198,13 @@ export function GetPaymentInfoHandler(
   recaptchaSecret: string
 ): IGetPaymentInfoHandler {
   return (context, rptId, recaptchaResponse) =>
-  GetPaymentInfoHandlerTask(pagoPaClient, recaptchaSecret, context, rptId, recaptchaResponse)();
+    GetPaymentInfoHandlerTask(
+      pagoPaClient,
+      recaptchaSecret,
+      context,
+      rptId,
+      recaptchaResponse
+    )();
 }
 
 export function GetPaymentInfoCtrl(

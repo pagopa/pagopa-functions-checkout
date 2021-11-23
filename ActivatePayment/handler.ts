@@ -28,14 +28,14 @@ import { PaymentActivationsPostRequest } from "../generated/pagopa-proxy/Payment
 import { PaymentActivationsPostResponse } from "../generated/pagopa-proxy/PaymentActivationsPostResponse";
 import { PaymentProblemJson } from "../generated/pagopa-proxy/PaymentProblemJson";
 import { ProblemJson } from "../generated/pagopa-proxy/ProblemJson";
-import { toErrorPagopaProxyResponse } from "../utils/pagopaProxyUtil";
 import { getConfigOrThrow } from "../utils/config";
+import { toErrorPagopaProxyResponse } from "../utils/pagopaProxyUtil";
 
-import * as E from "fp-ts/lib/Either"
-import { Task } from "fp-ts/lib/Task";
 import { task } from "fp-ts";
+import { Task } from "fp-ts/l;ib/Task";
+import * as E from "fp-ts/lib/Either";
 
-const config = getConfigOrThrow()
+const config = getConfigOrThrow();
 
 type IActivatePaymentHandler = (
   context: Context,
@@ -44,12 +44,12 @@ type IActivatePaymentHandler = (
   IResponseSuccessJson<PaymentActivationsPostResponse> | ErrorResponses
 >;
 
-const TEST_RPTID = (`${(config.TEST_ORGANIZATION_FISCAL_CODE as string) ||
-  "77777777777"}` +
+const TEST_RPTID =
+  `${(config.TEST_ORGANIZATION_FISCAL_CODE as string) || "77777777777"}` +
   `${(config.TEST_APPLICATION_CODE as string) || "00"}` +
   `${(config.TEST_AUX_DIGIT as string) || "0"}` +
   `${(config.TEST_CHECK_DIGIT as string) || "00"}` +
-  `${(config.TEST_IUV13 as string) || "0000000000000"}`);
+  `${(config.TEST_IUV13 as string) || "0000000000000"}`;
 
 const logPrefix = "PostActivatePaymentHandler";
 
@@ -72,30 +72,29 @@ const activatePaymentTask = (
 function getPaymentHandlerTask(
   pagoPaClient: IApiClient,
   context: Context,
-  paymentRequest: PaymentActivationsPostRequest): Task<IResponseSuccessJson<PaymentActivationsPostResponse> | ErrorResponses>{
-    return flow(
-      E.fromPredicate(
-        rptId => rptId != TEST_RPTID,
-        _ => _
-      ),
-      E.map(_ => 
-        pipe(
-          activatePaymentTask(
-            getLogger(context, logPrefix, "ActivatePayment"),
-            pagoPaClient,
-            paymentRequest
-          ),
-          TE.map(myPayment => ResponseSuccessJson(myPayment)),
-          TE.toUnion
+  paymentRequest: PaymentActivationsPostRequest
+): Task<IResponseSuccessJson<PaymentActivationsPostResponse> | ErrorResponses> {
+  return flow(
+    E.fromPredicate(
+      rptId => rptId !== TEST_RPTID,
+      _ => _
+    ),
+    E.map(_ =>
+      pipe(
+        activatePaymentTask(
+          getLogger(context, logPrefix, "ActivatePayment"),
+          pagoPaClient,
+          paymentRequest
+        ),
+        TE.map(myPayment => ResponseSuccessJson(myPayment)),
+        TE.toUnion
       )
     ),
-    E.mapLeft( _ =>
-      pipe(
-        task.of(ResponseSuccessJson({} as PaymentActivationsPostResponse))
-      )
+    E.mapLeft(_ =>
+      pipe(task.of(ResponseSuccessJson({} as PaymentActivationsPostResponse)))
     ),
     E.toUnion
-    )(paymentRequest.rptId)
+  )(paymentRequest.rptId);
 }
 
 export function ActivatePaymentHandler(
@@ -117,5 +116,3 @@ export function ActivatePaymentCtrl(
 
   return wrapRequestHandler(middlewaresWrap(handler));
 }
-
-

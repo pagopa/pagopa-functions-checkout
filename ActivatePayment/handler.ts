@@ -32,8 +32,8 @@ import { getConfigOrThrow } from "../utils/config";
 import { toErrorPagopaProxyResponse } from "../utils/pagopaProxyUtil";
 
 import { task } from "fp-ts";
-import { Task } from "fp-ts/lib/Task";
 import * as E from "fp-ts/lib/Either";
+import { Task } from "fp-ts/lib/Task";
 
 const config = getConfigOrThrow();
 

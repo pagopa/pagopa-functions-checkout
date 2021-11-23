@@ -19,7 +19,7 @@ import * as logger from "../../utils/logging";
 
 import * as handlers from "../handler";
 
-import { taskEither } from "fp-ts/lib/TaskEither";
+import  * as TE  from "fp-ts/lib/TaskEither";
 import { ResponseRecaptcha } from "../handler";
 import { RptIdFromString } from "../../utils/RptIdFromString";
 
@@ -52,7 +52,7 @@ afterEach(() => {
 
 it("should return a payment info", async () => {
   jest.spyOn(handlers, "recaptchaCheckTask").mockReturnValueOnce(
-    taskEither.of({
+    TE.of({
       challenge_ts: "challenge_ts",
       hostname: "hostname",
       success: true

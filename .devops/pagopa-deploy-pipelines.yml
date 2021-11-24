@@ -68,7 +68,7 @@ stages:
 
         - ${{ if ne(variables['Build.SourceBranch'], 'refs/heads/main') }}:
           - script: |
-              echo "We assume this reference to be a valid release: $(Build.SourceBranch). Therefore, there is no need to bundle a new release."
+              echo "We assume this reference to be a valid release: '$(Build.SourceBranch)'. Therefore, there is no need to bundle a new release."
             displayName: 'Skip release bundle'
   # Prepare Artifact
   - stage: Prepare_artifact

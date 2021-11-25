@@ -18,9 +18,6 @@ const contextTransport = new AzureContextTransport(() => logger, {
 });
 winston.add(contextTransport);
 
-const challengePage =
-  '<head><meta http-equiv="refresh" content="0; URL=IO_PAY_CHALLENGE_RESUME_URL"></head>';
-
 // Setup Express
 const app = express();
 
@@ -29,13 +26,8 @@ secureExpressApp(app);
 // Add express route
 app.post("/api/v1/transactions/:id/challenge", (req, res) => {
   res.set("Content-Type", "text/html");
-  return res.send(
-    challengePage
-      .replace(
-        "IO_PAY_CHALLENGE_RESUME_URL",
-        config.IO_PAY_CHALLENGE_RESUME_URL
-      )
-      .replace("idTransaction", req.params.id)
+  res.redirect(
+    config.IO_PAY_CHALLENGE_RESUME_URL.replace("idTransaction", req.params.id)
   );
 });
 

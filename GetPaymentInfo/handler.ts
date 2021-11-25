@@ -33,7 +33,7 @@ import { TaskEither } from "fp-ts/lib/TaskEither";
 import { fetchApi } from "../clients/fetchApi";
 import { PaymentProblemJson } from "../generated/pagopa-proxy/PaymentProblemJson";
 import { ProblemJson } from "../generated/pagopa-proxy/ProblemJson";
-import { getConfigOrThrow } from "../utils/config";
+import { IConfig } from "../utils/config";
 import { toErrorPagopaProxyResponse } from "../utils/pagopaProxyUtil";
 import { RptIdFromString } from "../utils/RptIdFromString";
 
@@ -42,19 +42,6 @@ type IGetPaymentInfoHandler = (
   rptId: RptIdFromString,
   recaptchaResponse: string
 ) => Promise<IResponseSuccessJson<PaymentRequestsGetResponse> | ErrorResponses>;
-
-const config = getConfigOrThrow();
-
-const TEST_RTPID = {
-  organizationFiscalCode:
-    (config.TEST_ORGANIZATION_FISCAL_CODE as string) || "77777777777",
-  paymentNoticeNumber: {
-    applicationCode: (config.TEST_APPLICATION_CODE as string) || "00",
-    auxDigit: (config.TEST_AUX_DIGIT as string) || "0",
-    checkDigit: (config.TEST_CHECK_DIGIT as string) || "00",
-    iuv13: (config.TEST_IUV13 as string) || "0000000000000"
-  }
-} as RptIdFromString;
 
 /**
  * Model for Google reCaptcha response
@@ -154,21 +141,35 @@ export const recaptchaCheckTask = (
     )
   );
 
-const isRegularRptId = (r: RptIdFromString) =>
-  JSON.stringify(r) !== JSON.stringify(TEST_RTPID);
-
 function GetPaymentInfoHandlerTask(
   pagoPaClient: IApiClient,
-  recaptchaSecret: string,
+  config: IConfig,
   context: Context,
   rptId: RptIdFromString,
   recaptchaResponse: string
 ): Task<IResponseSuccessJson<PaymentRequestsGetResponse> | ErrorResponses> {
+  const TEST_RTPID = {
+    organizationFiscalCode:
+      (config.TEST_ORGANIZATION_FISCAL_CODE as string) || "77777777777",
+    paymentNoticeNumber: {
+      applicationCode: (config.TEST_APPLICATION_CODE as string) || "00",
+      auxDigit: (config.TEST_AUX_DIGIT as string) || "0",
+      checkDigit: (config.TEST_CHECK_DIGIT as string) || "00",
+      iuv13: (config.TEST_IUV13 as string) || "0000000000000"
+    }
+  } as RptIdFromString;
+
+  const isRegularRptId = (r: RptIdFromString) =>
+    JSON.stringify(r) !== JSON.stringify(TEST_RTPID);
+
   return flow(
     E.fromPredicate(isRegularRptId, _ => _),
     E.map(_ =>
       pipe(
-        recaptchaCheckTask(recaptchaResponse, recaptchaSecret),
+        recaptchaCheckTask(
+          recaptchaResponse,
+          config.PAY_PORTAL_RECAPTCHA_SECRET
+        ),
         TE.mapLeft(e => ResponseErrorUnauthorized("Unauthorized", e.message)),
         TE.chain(() =>
           getPaymentInfoTask(
@@ -195,12 +196,12 @@ function GetPaymentInfoHandlerTask(
 
 export function GetPaymentInfoHandler(
   pagoPaClient: IApiClient,
-  recaptchaSecret: string
+  config: IConfig
 ): IGetPaymentInfoHandler {
   return (context, rptId, recaptchaResponse) =>
     GetPaymentInfoHandlerTask(
       pagoPaClient,
-      recaptchaSecret,
+      config,
       context,
       rptId,
       recaptchaResponse
@@ -209,9 +210,9 @@ export function GetPaymentInfoHandler(
 
 export function GetPaymentInfoCtrl(
   pagoPaClient: IApiClient,
-  recaptchaSecret: string
+  config: IConfig
 ): express.RequestHandler {
-  const handler = GetPaymentInfoHandler(pagoPaClient, recaptchaSecret);
+  const handler = GetPaymentInfoHandler(pagoPaClient, config);
   const middlewaresWrap = withRequestMiddlewares(
     ContextMiddleware(),
     RequiredParamMiddleware("rptId", RptIdFromString),

@@ -28,14 +28,12 @@ import { PaymentActivationsPostRequest } from "../generated/pagopa-proxy/Payment
 import { PaymentActivationsPostResponse } from "../generated/pagopa-proxy/PaymentActivationsPostResponse";
 import { PaymentProblemJson } from "../generated/pagopa-proxy/PaymentProblemJson";
 import { ProblemJson } from "../generated/pagopa-proxy/ProblemJson";
-import { getConfigOrThrow } from "../utils/config";
+import { IConfig } from "../utils/config";
 import { toErrorPagopaProxyResponse } from "../utils/pagopaProxyUtil";
 
 import { task } from "fp-ts";
 import * as E from "fp-ts/lib/Either";
 import { Task } from "fp-ts/lib/Task";
-
-const config = getConfigOrThrow();
 
 type IActivatePaymentHandler = (
   context: Context,
@@ -43,13 +41,6 @@ type IActivatePaymentHandler = (
 ) => Promise<
   IResponseSuccessJson<PaymentActivationsPostResponse> | ErrorResponses
 >;
-
-const TEST_RPTID =
-  `${(config.TEST_ORGANIZATION_FISCAL_CODE as string) || "77777777777"}` +
-  `${(config.TEST_APPLICATION_CODE as string) || "00"}` +
-  `${(config.TEST_AUX_DIGIT as string) || "0"}` +
-  `${(config.TEST_CHECK_DIGIT as string) || "00"}` +
-  `${(config.TEST_IUV13 as string) || "0000000000000"}`;
 
 const logPrefix = "PostActivatePaymentHandler";
 
@@ -72,8 +63,16 @@ const activatePaymentTask = (
 function getPaymentHandlerTask(
   pagoPaClient: IApiClient,
   context: Context,
-  paymentRequest: PaymentActivationsPostRequest
+  paymentRequest: PaymentActivationsPostRequest,
+  config: IConfig
 ): Task<IResponseSuccessJson<PaymentActivationsPostResponse> | ErrorResponses> {
+  const TEST_RPTID =
+    `${(config.TEST_ORGANIZATION_FISCAL_CODE as string) || "77777777777"}` +
+    `${(config.TEST_APPLICATION_CODE as string) || "00"}` +
+    `${(config.TEST_AUX_DIGIT as string) || "0"}` +
+    `${(config.TEST_CHECK_DIGIT as string) || "00"}` +
+    `${(config.TEST_IUV13 as string) || "0000000000000"}`;
+
   return flow(
     E.fromPredicate(
       rptId => rptId !== TEST_RPTID,
@@ -98,17 +97,24 @@ function getPaymentHandlerTask(
 }
 
 export function ActivatePaymentHandler(
-  pagoPaClient: IApiClient
+  pagoPaClient: IApiClient,
+  config: IConfig
 ): IActivatePaymentHandler {
   return (context, paymentRequest) => {
-    return getPaymentHandlerTask(pagoPaClient, context, paymentRequest)();
+    return getPaymentHandlerTask(
+      pagoPaClient,
+      context,
+      paymentRequest,
+      config
+    )();
   };
 }
 
 export function ActivatePaymentCtrl(
-  pagoPaClient: IApiClient
+  pagoPaClient: IApiClient,
+  config: IConfig
 ): express.RequestHandler {
-  const handler = ActivatePaymentHandler(pagoPaClient);
+  const handler = ActivatePaymentHandler(pagoPaClient, config);
   const middlewaresWrap = withRequestMiddlewares(
     ContextMiddleware(),
     RequiredBodyPayloadMiddleware(PaymentActivationsPostRequest)

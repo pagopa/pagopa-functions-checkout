@@ -11,6 +11,7 @@ process.env = {
 };
 
 import { apiClient } from "../../clients/pagopa";
+import { IConfig } from "../../utils/config";
 
 import * as logger from "../../utils/logging";
 
@@ -31,6 +32,8 @@ const context = ({
   }
 } as any) as Context;
 
+const config = process.env as IConfig;
+
 // use to mock getLogger
 jest.spyOn(logger, "getLogger").mockReturnValueOnce({
   logErrors: jest.fn(),
@@ -45,7 +48,7 @@ afterEach(() => {
 });
 
 it("should return a PaymentActivationsPostResponse if the activation is successful", async () => {
-  const handler = ActivatePaymentHandler(apiClient);
+  const handler = ActivatePaymentHandler(apiClient, config);
 
   const response = await handler(context, validPaymentActivationsRequest);
 

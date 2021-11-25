@@ -29,7 +29,7 @@ secureExpressApp(app);
 // Add express route
 app.get(
   "/api/v1/payment-requests/:rptId",
-  GetPaymentInfoCtrl(apiClient, config.PAY_PORTAL_RECAPTCHA_SECRET)
+  GetPaymentInfoCtrl(apiClient, config)
 );
 
 const azureFunctionHandler = createAzureFunctionHandler(app);

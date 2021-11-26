@@ -17,6 +17,7 @@ import {
 
 import * as E from "fp-ts/lib/Either";
 import { Errors } from "io-ts";
+import { PaymentFaultV2Enum } from "../generated/pagopa-proxy/PaymentFaultV2";
 
 export const toErrorPagopaProxyResponse = <S extends number, T>(
   response: IResponseType<S, T>,
@@ -43,7 +44,9 @@ export const toErrorPagopaProxyResponse = <S extends number, T>(
           result => {
             const detail = result.detail_v2 ? result.detail_v2 : result.detail;
             logger.logInfo(`pagoPA proxy [rptId: ${rptId}, detail: ${detail}]`);
-            return ResponseErrorValidation("Validation Error", detail);
+            return detail === PaymentFaultV2Enum.GENERIC_ERROR
+              ? ResponseErrorInternal("Generic Error")
+              : ResponseErrorValidation("Validation Error", detail);
           }
         )
       );

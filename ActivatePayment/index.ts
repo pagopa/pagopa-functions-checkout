@@ -10,6 +10,7 @@ import { setAppContext } from "@pagopa/io-functions-commons/dist/src/utils/middl
 import { ActivatePaymentCtrl } from "./handler";
 
 import { apiClient } from "../clients/pagopa";
+import { getConfigOrThrow } from "../utils/config";
 
 // tslint:disable-next-line: no-let
 let logger: Context["log"] | undefined;
@@ -22,8 +23,10 @@ winston.add(contextTransport);
 const app = express();
 secureExpressApp(app);
 
+const config = getConfigOrThrow();
+
 // Add express route
-app.post("/api/v1/payment-activations", ActivatePaymentCtrl(apiClient));
+app.post("/api/v1/payment-activations", ActivatePaymentCtrl(apiClient, config));
 
 const azureFunctionHandler = createAzureFunctionHandler(app);
 

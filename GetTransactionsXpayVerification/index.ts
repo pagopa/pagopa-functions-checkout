@@ -18,9 +18,6 @@ const contextTransport = new AzureContextTransport(() => logger, {
 });
 winston.add(contextTransport);
 
-const xpayRedirectPage =
-  '<head><meta http-equiv="refresh" content="0; URL=IO_PAY_XPAY_REDIRECT"></head>';
-
 // Setup Express
 const app = express();
 
@@ -31,12 +28,13 @@ app.get("/api/v1/transactions/xpay/verification/:id", (req, res) => {
   res.set("Content-Type", "text/html");
   const i = req.originalUrl.indexOf("?");
   const queryParams = req.originalUrl.slice(i + 1);
-  return res.send(
-    xpayRedirectPage
-      .replace("IO_PAY_XPAY_REDIRECT", config.IO_PAY_XPAY_REDIRECT)
-      .replace("_id_", req.params.id)
-      .replace("_resumeType_", "xpayVerification")
-      .replace("_queryParams_", queryParams)
+
+  res.redirect(
+    `${config.IO_PAY_XPAY_REDIRECT}?` +
+      queryParams
+        .replace("_id_", req.params.id)
+        .replace("_resumeType_", "xpayVerification")
+        .replace("_queryParams_", queryParams)
   );
 });
 

@@ -1,12 +1,14 @@
 /* tslint:disable */
 import { Context } from "@azure/functions";
 import { right } from "fp-ts/lib/Either";
+
 import { ActivatePaymentHandler } from "../handler";
 
 import {
   invalidPaymentActivationsRequest,
   validPaymentActivationsRequest
 } from "../../__mocks__/mock";
+import { IConfig } from "../../utils/config";
 
 const context = ({
   bindings: {},
@@ -21,6 +23,15 @@ const context = ({
     warn: jest.fn().mockImplementation(console.log)
   }
 } as any) as Context;
+
+const config = {
+  PAGOPA_BASE_PATH: "NonEmptyString",
+  IO_PAY_XPAY_REDIRECT: "http://localhost",
+  IO_PAY_CHALLENGE_RESUME_URL: "NonEmptyString",
+  IO_PAY_ORIGIN: "NonEmptyString",
+  PAY_PORTAL_RECAPTCHA_SECRET: "NonEmptyString",
+  IO_PAGOPA_PROXY: "NonEmptyString"
+} as IConfig;
 
 afterEach(() => {
   jest.resetAllMocks();
@@ -48,7 +59,7 @@ it("should return a PaymentActivationsPostResponse if the activation is successf
     })
   };
 
-  const handler = ActivatePaymentHandler(apiClientMock as any);
+  const handler = ActivatePaymentHandler(apiClientMock as any, config);
 
   const response = await handler(context, validPaymentActivationsRequest);
 
@@ -66,7 +77,7 @@ it("should return a payment KO response if the activation is not successful", as
     })
   };
 
-  const handler = ActivatePaymentHandler(apiClientMock as any);
+  const handler = ActivatePaymentHandler(apiClientMock as any, config);
 
   const response = await handler(context, invalidPaymentActivationsRequest);
 

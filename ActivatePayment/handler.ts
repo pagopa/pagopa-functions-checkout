@@ -3,7 +3,7 @@ import * as express from "express";
 import { Context } from "@azure/functions";
 import { ContextMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/context_middleware";
 
-import { pipe } from "fp-ts/lib/function";
+import { flow, pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
 
 import { IApiClient } from "../clients/pagopa";
@@ -28,7 +28,13 @@ import { PaymentActivationsPostRequest } from "../generated/pagopa-proxy/Payment
 import { PaymentActivationsPostResponse } from "../generated/pagopa-proxy/PaymentActivationsPostResponse";
 import { PaymentProblemJson } from "../generated/pagopa-proxy/PaymentProblemJson";
 import { ProblemJson } from "../generated/pagopa-proxy/ProblemJson";
+import { IConfig } from "../utils/config";
 import { toErrorPagopaProxyResponse } from "../utils/pagopaProxyUtil";
+
+import { task } from "fp-ts";
+import * as E from "fp-ts/lib/Either";
+import { Task } from "fp-ts/lib/Task";
+import { RptIdFromString } from "../utils/RptIdFromString";
 
 type IActivatePaymentHandler = (
   context: Context,
@@ -55,26 +61,54 @@ const activatePaymentTask = (
       toErrorPagopaProxyResponse(errorResponse, logger, paymentRequest.rptId)
   );
 
+function getPaymentHandlerTask(
+  pagoPaClient: IApiClient,
+  context: Context,
+  paymentRequest: PaymentActivationsPostRequest,
+  config: IConfig
+): Task<IResponseSuccessJson<PaymentActivationsPostResponse> | ErrorResponses> {
+  return flow(
+    E.fromPredicate(
+      rptId => rptId !== RptIdFromString.encode(config.PROBE_RPTID),
+      _ => _
+    ),
+    E.map(_ =>
+      pipe(
+        activatePaymentTask(
+          getLogger(context, logPrefix, "ActivatePayment"),
+          pagoPaClient,
+          paymentRequest
+        ),
+        TE.map(myPayment => ResponseSuccessJson(myPayment)),
+        TE.toUnion
+      )
+    ),
+    E.mapLeft(_ =>
+      pipe(task.of(ResponseSuccessJson({} as PaymentActivationsPostResponse)))
+    ),
+    E.toUnion
+  )(paymentRequest.rptId);
+}
+
 export function ActivatePaymentHandler(
-  pagoPaClient: IApiClient
+  pagoPaClient: IApiClient,
+  config: IConfig
 ): IActivatePaymentHandler {
   return (context, paymentRequest) => {
-    return pipe(
-      activatePaymentTask(
-        getLogger(context, logPrefix, "ActivatePayment"),
-        pagoPaClient,
-        paymentRequest
-      ),
-      TE.map(myPayment => ResponseSuccessJson(myPayment)),
-      TE.toUnion
+    return getPaymentHandlerTask(
+      pagoPaClient,
+      context,
+      paymentRequest,
+      config
     )();
   };
 }
 
 export function ActivatePaymentCtrl(
-  pagoPaClient: IApiClient
+  pagoPaClient: IApiClient,
+  config: IConfig
 ): express.RequestHandler {
-  const handler = ActivatePaymentHandler(pagoPaClient);
+  const handler = ActivatePaymentHandler(pagoPaClient, config);
   const middlewaresWrap = withRequestMiddlewares(
     ContextMiddleware(),
     RequiredBodyPayloadMiddleware(PaymentActivationsPostRequest)

@@ -3,14 +3,6 @@ import { Context } from "@azure/functions";
 
 import { paymentInfo } from "../../__mocks__/mock";
 
-// should be HERE !!!!
-process.env = {
-  IO_PAGOPA_PROXY_PROD_BASE_URL: "http://localhost:7071/api/v1",
-  IO_PAGOPA_PROXY_TEST_BASE_URL: "http://localhost:7071/api/v1",
-  PAGOPA_BASE_PATH: "NonEmptyString",
-  IO_PAY_XPAY_REDIRECT: "http://localhost"
-};
-
 import { left, right } from "fp-ts/lib/Either";
 
 import * as logger from "../../utils/logging";
@@ -27,6 +19,16 @@ import * as E from "fp-ts/lib/Either"
 import { ResponseRecaptcha } from "../handler";
 
 import * as fetch from "../../clients/fetchApi";
+import { IConfig } from "../../utils/config";
+
+const config = {
+  PAGOPA_BASE_PATH: "NonEmptyString",
+  IO_PAY_XPAY_REDIRECT: "http://localhost",
+  IO_PAY_CHALLENGE_RESUME_URL: "NonEmptyString",
+  IO_PAY_ORIGIN: "NonEmptyString",
+  PAY_PORTAL_RECAPTCHA_SECRET: "NonEmptyString",
+  IO_PAGOPA_PROXY: "NonEmptyString"
+} as IConfig;
 
 const context = ({
   bindings: {},
@@ -79,7 +81,7 @@ it("should return a payment info KO response", async () => {
 
   const handler = handlers.GetPaymentInfoHandler(
     apiClientMock as any,
-    "recaptchaSecret"
+    config
   );
 
   const response = await handler(
@@ -126,7 +128,7 @@ it("should return a payment info OK response PaymentRequestsGetResponse", async 
 
   const handler = handlers.GetPaymentInfoHandler(
     apiClientMock as any,
-    "captchaSecret"
+    config
   );
 
   const response = await handler(
@@ -209,7 +211,7 @@ it("should return IResponseErrorValidation response when pagopa proxy return 500
 
   const handler = handlers.GetPaymentInfoHandler(
     apiClientMock as any,
-    "recaptchaSecret"
+    config
   );
 
   const response = await handler(
@@ -250,7 +252,7 @@ it("should return IResponseErrorInternal response when pagopa proxy return 500 w
 
   const handler = handlers.GetPaymentInfoHandler(
     apiClientMock as any,
-    "recaptchaSecret"
+    config
   );
 
   const response = await handler(

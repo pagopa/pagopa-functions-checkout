@@ -8,9 +8,10 @@ process.env = {
   IO_PAY_CHALLENGE_RESUME_URL: "http://localhost:1235",
   IO_PAY_ORIGIN: "http://localhost:1234",
   IO_PAY_XPAY_REDIRECT: "http://localhost:1234",
-  PAGOPA_BASE_PATH: "/",
-  PAY_PORTAL_RECAPTCHA_SECRET: "SECRET"
-};
+  PAGOPA_BASE_PATH: "NonEmptyString",
+  PAY_PORTAL_RECAPTCHA_SECRET: "NonEmptyString",
+  PROBE_RPTID: "77777777777000000000000000000"
+}
 
 import { apiClient } from "../../clients/pagopa";
 
@@ -19,9 +20,10 @@ import * as logger from "../../utils/logging";
 
 import * as handlers from "../handler";
 
-import { taskEither } from "fp-ts/lib/TaskEither";
+import  * as TE  from "fp-ts/lib/TaskEither";
 import { ResponseRecaptcha } from "../handler";
 import { RptIdFromString } from "../../utils/RptIdFromString";
+import { getConfigOrThrow, IConfig } from "../../utils/config";
 
 const context = ({
   bindings: {},
@@ -36,6 +38,8 @@ const context = ({
     warn: jest.fn().mockImplementation(console.log)
   }
 } as any) as Context;
+
+const config = getConfigOrThrow()
 
 // use to mock getLogger
 jest.spyOn(logger, "getLogger").mockReturnValueOnce({
@@ -52,14 +56,14 @@ afterEach(() => {
 
 it("should return a payment info", async () => {
   jest.spyOn(handlers, "recaptchaCheckTask").mockReturnValueOnce(
-    taskEither.of({
+    TE.of({
       challenge_ts: "challenge_ts",
       hostname: "hostname",
       success: true
     } as ResponseRecaptcha)
   );
 
-  const handler = handlers.GetPaymentInfoHandler(apiClient, "recaptchaSecret");
+  const handler = handlers.GetPaymentInfoHandler(apiClient, config);
 
   const response = await handler(
     context,

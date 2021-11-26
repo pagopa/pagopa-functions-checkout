@@ -14,17 +14,25 @@ import * as t from "io-ts";
 import { readableReport } from "@pagopa/ts-commons/lib/reporters";
 
 import { pipe } from "fp-ts/lib/function";
+import { RptIdFromString } from "./RptIdFromString";
 
 // global app configuration
-export type IConfig = t.TypeOf<typeof IConfig>;
-export const IConfig = t.interface({
+export const IConfigR = t.interface({
   IO_PAGOPA_PROXY: NonEmptyString,
   IO_PAY_CHALLENGE_RESUME_URL: NonEmptyString,
   IO_PAY_ORIGIN: NonEmptyString,
   IO_PAY_XPAY_REDIRECT: NonEmptyString,
   PAGOPA_BASE_PATH: NonEmptyString,
-  PAY_PORTAL_RECAPTCHA_SECRET: NonEmptyString
+  PAY_PORTAL_RECAPTCHA_SECRET: NonEmptyString,
+  PROBE_RPTID: RptIdFromString
 });
+
+export const IConfigO = t.partial({
+});
+
+export const IConfig = t.intersection([IConfigR, IConfigO], "IConfig");
+
+export type IConfig = t.TypeOf<typeof IConfig>;
 
 // No need to re-evaluate this object for each call
 const errorOrConfig: t.Validation<IConfig> = IConfig.decode({

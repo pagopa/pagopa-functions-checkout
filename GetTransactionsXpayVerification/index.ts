@@ -30,11 +30,10 @@ app.get("/api/v1/transactions/xpay/verification/:id", (req, res) => {
   const queryParams = req.originalUrl.slice(i + 1);
 
   return res.redirect(
-    `${config.IO_PAY_XPAY_REDIRECT}?` +
-      queryParams
-        .replace("_id_", req.params.id)
-        .replace("_resumeType_", "xpayVerification")
-        .replace("_queryParams_", queryParams)
+    config.IO_PAY_XPAY_REDIRECT
+      .replace("_id_", req.params.id)
+      .replace("_resumeType_", "xpayVerification")
+      .replace("_queryParams_", queryParams)
   );
 });
 

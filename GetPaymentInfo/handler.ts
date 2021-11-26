@@ -148,19 +148,9 @@ function GetPaymentInfoHandlerTask(
   rptId: RptIdFromString,
   recaptchaResponse: string
 ): Task<IResponseSuccessJson<PaymentRequestsGetResponse> | ErrorResponses> {
-  const TEST_RTPID = {
-    organizationFiscalCode:
-      (config.TEST_ORGANIZATION_FISCAL_CODE as string) || "77777777777",
-    paymentNoticeNumber: {
-      applicationCode: (config.TEST_APPLICATION_CODE as string) || "00",
-      auxDigit: (config.TEST_AUX_DIGIT as string) || "0",
-      checkDigit: (config.TEST_CHECK_DIGIT as string) || "00",
-      iuv13: (config.TEST_IUV13 as string) || "0000000000000"
-    }
-  } as RptIdFromString;
 
   const isRegularRptId = (r: RptIdFromString) =>
-    JSON.stringify(r) !== JSON.stringify(TEST_RTPID);
+    JSON.stringify(r) !== JSON.stringify(config.PROBE_RPTID);
 
   return flow(
     E.fromPredicate(isRegularRptId, _ => _),

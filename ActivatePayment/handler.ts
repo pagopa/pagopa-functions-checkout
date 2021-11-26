@@ -34,6 +34,7 @@ import { toErrorPagopaProxyResponse } from "../utils/pagopaProxyUtil";
 import { task } from "fp-ts";
 import * as E from "fp-ts/lib/Either";
 import { Task } from "fp-ts/lib/Task";
+import { RptIdFromString } from "../utils/RptIdFromString";
 
 type IActivatePaymentHandler = (
   context: Context,
@@ -66,16 +67,9 @@ function getPaymentHandlerTask(
   paymentRequest: PaymentActivationsPostRequest,
   config: IConfig
 ): Task<IResponseSuccessJson<PaymentActivationsPostResponse> | ErrorResponses> {
-  const TEST_RPTID =
-    `${(config.TEST_ORGANIZATION_FISCAL_CODE as string) || "77777777777"}` +
-    `${(config.TEST_APPLICATION_CODE as string) || "00"}` +
-    `${(config.TEST_AUX_DIGIT as string) || "0"}` +
-    `${(config.TEST_CHECK_DIGIT as string) || "00"}` +
-    `${(config.TEST_IUV13 as string) || "0000000000000"}`;
-
   return flow(
     E.fromPredicate(
-      rptId => rptId !== TEST_RPTID,
+      rptId => rptId !== RptIdFromString.encode(config.PROBE_RPTID),
       _ => _
     ),
     E.map(_ =>

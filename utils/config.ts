@@ -14,6 +14,7 @@ import * as t from "io-ts";
 import { readableReport } from "@pagopa/ts-commons/lib/reporters";
 
 import { pipe } from "fp-ts/lib/function";
+import { RptIdFromString } from "./RptIdFromString";
 
 // global app configuration
 export const IConfigR = t.interface({
@@ -22,15 +23,11 @@ export const IConfigR = t.interface({
   IO_PAY_ORIGIN: NonEmptyString,
   IO_PAY_XPAY_REDIRECT: NonEmptyString,
   PAGOPA_BASE_PATH: NonEmptyString,
-  PAY_PORTAL_RECAPTCHA_SECRET: NonEmptyString
+  PAY_PORTAL_RECAPTCHA_SECRET: NonEmptyString,
+  PROBE_RPTID: RptIdFromString
 });
 
 export const IConfigO = t.partial({
-  TEST_APPLICATION_CODE: t.string,
-  TEST_AUX_DIGIT: t.string,
-  TEST_CHECK_DIGIT: t.string,
-  TEST_IUV13: t.string,
-  TEST_ORGANIZATION_FISCAL_CODE: t.string
 });
 
 export const IConfig = t.intersection([IConfigR, IConfigO], "IConfig");

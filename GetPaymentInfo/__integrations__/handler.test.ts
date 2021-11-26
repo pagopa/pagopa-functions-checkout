@@ -10,6 +10,7 @@ process.env = {
   IO_PAY_XPAY_REDIRECT: "http://localhost:1234",
   PAGOPA_BASE_PATH: "NonEmptyString",
   PAY_PORTAL_RECAPTCHA_SECRET: "NonEmptyString",
+  PROBE_RPTID: "77777777777000000000000000000"
 }
 
 import { apiClient } from "../../clients/pagopa";
@@ -22,7 +23,7 @@ import * as handlers from "../handler";
 import  * as TE  from "fp-ts/lib/TaskEither";
 import { ResponseRecaptcha } from "../handler";
 import { RptIdFromString } from "../../utils/RptIdFromString";
-import { IConfig } from "../../utils/config";
+import { getConfigOrThrow, IConfig } from "../../utils/config";
 
 const context = ({
   bindings: {},
@@ -38,7 +39,7 @@ const context = ({
   }
 } as any) as Context;
 
-const config = process.env as IConfig;
+const config = getConfigOrThrow()
 
 // use to mock getLogger
 jest.spyOn(logger, "getLogger").mockReturnValueOnce({

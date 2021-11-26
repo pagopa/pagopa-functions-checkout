@@ -118,4 +118,21 @@ describe("pagopaProxyUtil", () => {
 
     expect(error503.kind).toBe("IResponseErrorInternal");
   });
+
+  it("should return GenericError", () => {
+    const error503: ErrorResponses = toErrorPagopaProxyResponse(
+      {
+        headers: {},
+        status: 500,
+        value: {
+          detail: "GENERIC_ERROR",
+          detail_v2: "GENERIC_ERROR"
+        }
+      },
+      logger.getLogger(context, "logPrefix", "test")
+    );
+
+    expect(error503.kind).toBe("IResponseErrorInternal");
+  });
+
 });

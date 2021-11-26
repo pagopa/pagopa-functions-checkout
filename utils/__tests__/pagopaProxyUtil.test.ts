@@ -120,7 +120,7 @@ describe("pagopaProxyUtil", () => {
   });
 
   it("should return GenericError", () => {
-    const error503: ErrorResponses = toErrorPagopaProxyResponse(
+    const error500: ErrorResponses = toErrorPagopaProxyResponse(
       {
         headers: {},
         status: 500,
@@ -132,7 +132,7 @@ describe("pagopaProxyUtil", () => {
       logger.getLogger(context, "logPrefix", "test")
     );
 
-    expect(error503.kind).toBe("IResponseErrorInternal");
+    expect(error500.kind).toBe("IResponseErrorInternal");
   });
 
 });

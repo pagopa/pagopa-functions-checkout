@@ -30,10 +30,9 @@ app.get("/api/v1/transactions/xpay/:id", (req, res) => {
   const queryParams = req.originalUrl.slice(i + 1);
 
   return res.redirect(
-    config.IO_PAY_XPAY_REDIRECT
-        .replace("_id_", req.params.id)
-        .replace("_resumeType_", "xpay")
-        .replace("_queryParams_", queryParams)
+    config.IO_PAY_XPAY_REDIRECT.replace("_id_", req.params.id)
+      .replace("_resumeType_", "xpay")
+      .replace("_queryParams_", queryParams)
   );
 });
 

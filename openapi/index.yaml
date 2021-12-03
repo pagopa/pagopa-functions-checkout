@@ -1,12 +1,12 @@
 swagger: "2.0"
 info:
   version: 1.0.0
-  title: IO pay portal API
+  title: pagoPA checkout API
   contact:
-    name: IO team
-    url: https://forum.italia.it/c/progetto-io
+    name: pagoPA checkout team
+    url: https://checkout.pagopa.it
   description: >
-    Documentation of the IO Pay Portal Function API here.
+    Documentation of the pagoPA checkout API here.
 host: localhost
 basePath: "/api/v1"
 schemes:
@@ -50,12 +50,6 @@ paths:
             $ref: "#/definitions/PaymentProblemJson"
   "/payment-activations":
     x-swagger-router-controller: PagoPAProxyController
-    parameters:
-      - name: test
-        in: query
-        description: Use test environment of PagoPAClient
-        type: boolean
-        required: false
     post:
       operationId: activatePayment
       summary: Activate Payment
@@ -97,11 +91,6 @@ paths:
         required: true
         description: Transaction Id used to identify the communication flow.
         type: string
-      - name: test
-        in: query
-        description: Use test environment of PagoPAClient
-        type: boolean
-        required: false
     get:
       operationId: getActivationStatus
       summary: Get Activation status

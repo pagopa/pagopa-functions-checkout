@@ -135,4 +135,36 @@ describe("pagopaProxyUtil", () => {
     expect(error500.kind).toBe("IResponseErrorInternal");
   });
 
+  it("should return PAA_SYSTEM_ERROR", () => {
+    const error400: ErrorResponses = toErrorPagopaProxyResponse(
+      {
+        headers: {},
+        status: 500,
+        value: {
+          detail: "GENERIC_ERROR",
+          detail_v2: "PAA_SYSTEM_ERROR"
+        }
+      },
+      logger.getLogger(context, "logPrefix", "test")
+    );
+
+    expect(error400.kind).toBe("IResponseErrorValidation");
+  });
+
+  // tslint:disable-next-line:no-identical-functions
+  it("should return error PPT_SYSTEM_ERROR", () => {
+    const error400: ErrorResponses = toErrorPagopaProxyResponse(
+      {
+        headers: {},
+        status: 500,
+        value: {
+          detail: "GENERIC_ERROR",
+          detail_v2: "PPT_SYSTEM_ERROR"
+        }
+      },
+      logger.getLogger(context, "logPrefix", "test")
+    );
+
+    expect(error400.kind).toBe("IResponseErrorValidation");
+  });
 });

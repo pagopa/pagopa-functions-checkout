@@ -26,7 +26,7 @@
     "predeploy": "npm-run-all generate build dist:*",
     "pagopaproxy-mock:server": "node pagopaproxy-mock-server.js",
     "generate:definitions": "shx rm -rf ./generated/definitions && shx mkdir -p ./generated/definitions && gen-api-models --api-spec ./openapi/index.yaml --no-strict --out-dir ./generated/definitions",
-    "generate:pagopaproxy": "rimraf ./generated/pagopa-proxy && gen-api-models --api-spec https://raw.githubusercontent.com/pagopa/io-pagopa-proxy/v0.14.1/api_pagopa.yaml --no-strict --out-dir ./generated/pagopa-proxy --request-types --response-decoders --client",
+    "generate:pagopaproxy": "rimraf ./generated/pagopa-proxy && gen-api-models --api-spec https://raw.githubusercontent.com/pagopa/io-pagopa-proxy/v0.20.0/api_pagopa.yaml --no-strict --out-dir ./generated/pagopa-proxy --request-types --response-decoders --client",
     "generate": "npm-run-all generate:*",
     "preversion": "auto-changelog  --config .auto-changelog.json --unreleased --commit-limit false --stdout --template preview.hbs",
     "version": "auto-changelog -p --config .auto-changelog.json --unreleased && git add CHANGELOG.md"

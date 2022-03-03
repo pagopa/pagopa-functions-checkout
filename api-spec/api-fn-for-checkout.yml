@@ -40,7 +40,7 @@ paths:
           required: true
           description: transaction id
       responses:
-        '302':
+        '200':
           description: Redirect checkout
           schema:
             $ref: '#/definitions/Location'

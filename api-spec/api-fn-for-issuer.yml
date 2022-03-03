@@ -1,0 +1,91 @@
+swagger: '2.0'
+info:
+  version: 1.0.0
+  title: Checkout payment transactions API
+  contact:
+    name: pagoPA team
+  description: |
+    Documentation of Checkout Function payment transactions API.
+basePath: /api/checkout/payment-transactions/v1/
+schemes:
+  - https
+paths:
+  /transactions/{id}/method:
+    post:
+      operationId: PostTransactionsMethod3ds2
+      description: API to support 3ds2 method step
+      produces:
+        - text/html
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: transaction id
+          type: string
+      responses:
+        '200':
+          description: html with redirect checkout
+        '400':
+          description: Bad request
+        '500':
+          description: generic error
+  /transactions/{id}/challenge:
+    post:
+      operationId: PostTransactionsChallenge3ds2
+      description: API to support 3ds2 challenge step
+      parameters:
+        - name: id
+          type: string
+          in: path
+          required: true
+          description: transaction id
+      responses:
+        '302':
+          description: Redirect checkout
+          headers:
+            Location:
+              type: string
+        '400':
+          description: Bad request
+        '500':
+          description: generic error
+  /transactions/xpay/{id}:
+    get:
+      operationId: GetTransactionsXpay
+      description: API to support xpay flow
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: transaction id
+          type: string
+      responses:
+        '302':
+          description: Redirect checkout
+          headers:
+            Location:
+              type: string
+        '400':
+          description: Bad request
+        '500':
+          description: generic error
+  /transactions/xpay/verification/{id}:
+    get:
+      operationId: GetTransactionsXpayVerification
+      description: API to support xpay verification flow
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: transaction id
+          type: string
+      responses:
+        '302':
+          description: Redirect checkout
+          headers:
+            Location:
+              type: string
+        '400':
+          description: Bad request
+        '500':
+          description: generic error

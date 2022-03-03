@@ -39,6 +39,8 @@ paths:
           required: true
           description: transaction id
           type: string
+      produces:
+        - text/html
       responses:
         '302':
           description: Redirect checkout
@@ -46,7 +48,6 @@ paths:
             Location:
               description: URI where the client can refresh the expired token.
               type: string
-              format: uri 
         '400':
           description: Bad request
         '500':

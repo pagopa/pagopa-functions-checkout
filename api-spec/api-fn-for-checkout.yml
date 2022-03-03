@@ -33,8 +33,6 @@ paths:
     post:
       operationId: PostTransactionsChallenge3ds2
       description: API to support 3ds2 challenge step
-      produces:
-        - text/html
       parameters:
         - name: id
           in: path
@@ -52,8 +50,6 @@ paths:
     get:
       operationId: GetTransactionsXpay
       description: API to support xpay flow
-      produces:
-        - text/html
       parameters:
         - name: id
           in: path
@@ -71,8 +67,6 @@ paths:
     get:
       operationId: GetTransactionsXpayVerification
       description: API to support xpay verification flow
-      produces:
-        - text/html
       parameters:
         - name: id
           in: path

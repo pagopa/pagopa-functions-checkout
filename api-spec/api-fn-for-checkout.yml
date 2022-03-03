@@ -43,7 +43,7 @@ paths:
         '302':
           description: Redirect checkout
           schema:
-            type: string
+            $ref: '#/definitions/Location'
         '400':
           description: Bad request
         '500':
@@ -115,3 +115,5 @@ definitions:
         type: string
       accept:
         type: string
+  Location:
+    type: string      

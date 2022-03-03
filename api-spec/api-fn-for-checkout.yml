@@ -44,7 +44,9 @@ paths:
           description: Redirect checkout
           headers:
             Location:
+              description: URI where the client can refresh the expired token.
               type: string
+              format: uri 
         '400':
           description: Bad request
         '500':

@@ -43,7 +43,7 @@ paths:
         '302':
           description: Redirect checkout
           schema:
-            type: 'string'
+            type: string
           headers:
             Location:
               description: URI where the client can refresh the expired token.

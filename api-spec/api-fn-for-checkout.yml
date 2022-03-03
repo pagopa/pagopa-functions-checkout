@@ -44,10 +44,6 @@ paths:
           description: Redirect checkout
           schema:
             type: string
-          headers:
-            Location:
-              description: URI where the client can refresh the expired token.
-              type: string
         '400':
           description: Bad request
         '500':

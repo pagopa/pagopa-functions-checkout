@@ -37,5 +37,3 @@ definitions:
         type: string
       accept:
         type: string
-  Location:
-    type: string      

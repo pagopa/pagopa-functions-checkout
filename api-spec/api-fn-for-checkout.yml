@@ -35,15 +35,15 @@ paths:
       description: API to support 3ds2 challenge step
       parameters:
         - name: id
+          type: string
           in: path
           required: true
           description: transaction id
-          type: string
-      produces:
-        - text/html
       responses:
         '302':
           description: Redirect checkout
+          schema:
+            type: 'string'
           headers:
             Location:
               description: URI where the client can refresh the expired token.

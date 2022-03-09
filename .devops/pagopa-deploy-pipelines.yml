@@ -112,7 +112,7 @@ stages:
 
           - task: AzureFunctionApp@1
             inputs:
-              azureSubscription: '$(UAT_AZURE_SUBSCRIPTION)'
+              azureSubscription: '$(DEV_AZURE_SUBSCRIPTION)'
               resourceGroupName: 'pagopa-d-checkout-be-rg'
               appType: 'functionApp'
               appName: 'pagopa-d-fn-checkout'

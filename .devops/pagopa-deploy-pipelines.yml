@@ -121,7 +121,6 @@ stages:
               deployToSlotOrASE: true
               slotName: 'production'
               displayName: Deploy to DEV
-          - checkout: none
 
   # Create a release
   # Activated when ONE OF these are met:

@@ -216,6 +216,15 @@ definitions:
             retunErrorOk:
               type: string
               format: uri           
+    PaymentNotice:
+      type: object
+      properties: 
+        noticeNumber:
+          type: string
+        fiscalCode:
+          type: string
+        amount:
+          type: integer
     CartResponse:
       type: object
       properties:

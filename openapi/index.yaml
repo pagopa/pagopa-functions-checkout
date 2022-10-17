@@ -173,7 +173,7 @@ paths:
           in: body
           required: true
           schema:
-            $ref: "#defimition/CartRequest"
+            $ref: "#/defimition/CartRequest"
       responses:
         "200":
           description: Cart created
@@ -203,7 +203,7 @@ definitions:
         paymentNotices:
           type: array
           items:
-            $ref: "#definitions/PaymentNotice"
+            $ref: "#/definitions/PaymentNotice"
         returnurls:
           type: object
           properties: 

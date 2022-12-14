@@ -59,7 +59,7 @@
     "@pagopa/io-functions-commons": "^21.7.1",
     "@pagopa/io-pagopa-commons": "^2.0.2",
     "@pagopa/ts-commons": "^10.2.0",
-    "express": "^4.15.3",
+    "express": "^4.17.3",
     "fp-ts": "^2.11.1",
     "io-ts": "^2.2.16",
     "winston": "^3.2.1"

@@ -116,7 +116,7 @@ paths:
         "500":
           description: Unavailable service
           schema:
-            $ref: "#/definitions/ProblemJson"
+            $ref: "#/definitions/ProblemJson"     
   "/newsletters/{idClient}/lists/{idList}/recipients":
     post:
       operationId: PostNewslettersEmails
@@ -163,11 +163,78 @@ paths:
         "400":
           description: Bad request   
         "500":
-          description: generic error             
+          description: generic error
+  "/carts":
+    post:
+      operationId: PostCarts
+      description: create a cart
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: "#/defimition/CartRequest"
+      responses:
+        "200":
+          description: Cart created
+          schema:
+            $ref: "#/definitions/CartResponse"
+        "400":
+          description: Bad request
+          schema:
+            $ref: "#/definitions/ProblemJson"
+        "403":
+          description: forbidden
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: "#/definitions/ProblemJson"  
+        "500":
+          description: generic error
+          schema:
+            $ref: "#/definitions/ProblemJson"            
 definitions:
     ProblemJson:
       $ref: "https://raw.githubusercontent.com/pagopa/io-functions-commons/v10.7.0/openapi/definitions.yaml#/ProblemJson"
-    # Definitions from pagopa-proxy
+      #Definition for carts
+    CartRequest:
+      type: object
+      properties:
+        paymentNotices:
+          type: array
+          items:
+            $ref: "#/definitions/PaymentNotice"
+        returnurls:
+          type: object
+          properties: 
+            returnOkUrl: 
+              type: string
+              format: uri
+            returnCancelUrl:
+              type: string
+              format: uri
+            retunErrorOk:
+              type: string
+              format: uri           
+    PaymentNotice:
+      type: object
+      properties: 
+        noticeNumber:
+          type: string
+        fiscalCode:
+          type: string
+        amount:
+          type: integer
+    CartResponse:
+      type: object
+      properties:
+        idCart:
+          type: string
+          format: uuid
+        checkoutUrl:
+          type: string
+          format: uri 
+      # Definitions from pagopa-proxy
     PaymentProblemJson:
       $ref: "https://raw.githubusercontent.com/pagopa/io-pagopa-proxy/v0.20.0/api_pagopa.yaml#/definitions/PaymentProblemJson"
     CodiceContestoPagamento:
